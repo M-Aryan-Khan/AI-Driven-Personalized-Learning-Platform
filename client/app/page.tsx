@@ -23,7 +23,7 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="hidden md:flex items-center space-x-3">
+        <div className="hidden md:flex items-center space-x-3 lg:space-x-5 font-semibold ">
           <Link href="#" className="text-deep-cocoa hover:text-warm-coral transition-colors">
             Find an Expert
           </Link>
@@ -47,31 +47,31 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 md:px-6 py-12 md:py-20">
+      <section className="container mx-auto px-4 md:px-6 py-12 md:py-20 lg:py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-deep-cocoa leading-tight">
               Master any IT skill with AI-powered learning
             </h1>
             <div className="mt-6 space-y-4">
-              <div className="flex items-start gap-3">
-                <CheckCircle className="text-warm-coral mt-1 flex-shrink-0" size={20} />
+              <div className="flex items-start gap-3  font-semibold">
+                <CheckCircle className="text-warm-coral mt-[2px] flex-shrink-0" size={20} />
                 <p className="text-deep-cocoa">Take personalized 1-on-1 lessons with AI-matched expert mentors</p>
               </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle className="text-warm-coral mt-1 flex-shrink-0" size={20} />
+              <div className="flex items-start gap-3 font-semibold">
+                <CheckCircle className="text-warm-coral mt-[2px] flex-shrink-0" size={20} />
                 <p className="text-deep-cocoa">Learn from industry professionals that fit your budget and schedule</p>
               </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle className="text-warm-coral mt-1 flex-shrink-0" size={20} />
+              <div className="flex items-start gap-3 font-semibold">
+                <CheckCircle className="text-warm-coral mt-[2px] flex-shrink-0" size={20} />
                 <p className="text-deep-cocoa">Connect with a global community of tech learners and professionals</p>
               </div>
             </div>
             <div className="mt-8">
-              <Button className="bg-soft-peach hover:bg-[#FFB28C] text-deep-cocoa px-6 py-6 text-lg flex items-center gap-2">
+              <button className="bg-[#ffc6a8] hover:bg-[#ffb289] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-10 rounded-xl py-4 text-lg flex items-center gap-2">
                 Start learning now
                 <ArrowRight size={18} />
-              </Button>
+              </button>
             </div>
           </div>
           <div className="relative">
@@ -113,31 +113,31 @@ export default function Home() {
       {/* Tech Categories */}
       <section className="container mx-auto px-4 md:px-6 py-12 border-t border-rose-dust/20">
         <h2 className="text-2xl md:text-3xl font-bold text-deep-cocoa text-center mb-8">
-          Choose from 50+ in-demand tech skills
+          Choose from 50+ in-demand Tech Skills
         </h2>
         <TechCarousel />
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Button variant="outline" className="border-rose-dust text-deep-cocoa hover:bg-soft-peach/20">
+          <Button variant="outline" className="border-rose-dust text-deep-cocoa hover:bg-[#D9A5A0] transition-all ease-in-out duration-200">
             Web Development
           </Button>
-          <Button variant="outline" className="border-rose-dust text-deep-cocoa hover:bg-soft-peach/20">
+          <Button variant="outline" className="border-rose-dust text-deep-cocoa hover:bg-[#D9A5A0] transition-all ease-in-out duration-200">
             Data Structures
           </Button>
-          <Button variant="outline" className="border-rose-dust text-deep-cocoa hover:bg-soft-peach/20">
+          <Button variant="outline" className="border-rose-dust text-deep-cocoa hover:bg-[#D9A5A0] transition-all ease-in-out duration-200">
             Algorithms
           </Button>
-          <Button variant="outline" className="border-rose-dust text-deep-cocoa hover:bg-soft-peach/20">
+          <Button variant="outline" className="border-rose-dust text-deep-cocoa hover:bg-[#D9A5A0] transition-all ease-in-out duration-200">
             DevOps
           </Button>
-          <Button variant="outline" className="border-rose-dust text-deep-cocoa hover:bg-soft-peach/20">
+          <Button variant="outline" className="border-rose-dust text-deep-cocoa hover:bg-[#D9A5A0] transition-all ease-in-out duration-200">
             Cloud Computing
           </Button>
-          <Button variant="outline" className="border-rose-dust text-deep-cocoa hover:bg-soft-peach/20">
+          <Button variant="outline" className="border-rose-dust text-deep-cocoa hover:bg-[#D9A5A0] transition-all ease-in-out duration-200">
             Machine Learning
           </Button>
-          <Button variant="outline" className="border-rose-dust text-deep-cocoa hover:bg-soft-peach/20">
-            More
+          <Button variant="outline" className="border-rose-dust text-deep-cocoa hover:bg-[#D9A5A0] transition-all ease-in-out duration-200">
+            View More...
           </Button>
         </div>
       </section>
