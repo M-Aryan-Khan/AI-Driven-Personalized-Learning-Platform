@@ -1,26 +1,137 @@
 @import "tailwindcss";
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer utilities {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 20 100% 97%;
+    --foreground: 345 12% 20%;
+
+    --card: 20 100% 97%;
+    --card-foreground: 345 12% 20%;
+
+    --popover: 20 100% 97%;
+    --popover-foreground: 345 12% 20%;
+
+    --primary: 6 100% 73%;
+    --primary-foreground: 345 12% 20%;
+
+    --secondary: 15 100% 83%;
+    --secondary-foreground: 345 12% 20%;
+
+    --muted: 15 30% 75%;
+    --muted-foreground: 345 8% 40%;
+
+    --accent: 15 100% 83%;
+    --accent-foreground: 345 12% 20%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 15 30% 75%;
+    --input: 15 30% 75%;
+    --ring: 6 100% 73%;
+
+    --radius: 0.5rem;
+
+    --vanilla-cream: 30 100% 97%;
+    --deep-cocoa: 345 12% 20%;
+    --warm-coral: 6 100% 73%;
+    --soft-peach: 15 100% 83%;
+    --rose-dust: 5 30% 74%;
+  }
+
+  .dark {
+    --background: 345 12% 10%;
+    --foreground: 20 30% 90%;
+
+    --card: 345 12% 12%;
+    --card-foreground: 20 30% 90%;
+
+    --popover: 345 12% 12%;
+    --popover-foreground: 20 30% 90%;
+
+    --primary: 6 100% 73%;
+    --primary-foreground: 345 12% 10%;
+
+    --secondary: 15 50% 30%;
+    --secondary-foreground: 20 30% 90%;
+
+    --muted: 345 12% 20%;
+    --muted-foreground: 15 30% 70%;
+
+    --accent: 15 50% 30%;
+    --accent-foreground: 20 30% 90%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 345 12% 30%;
+    --input: 345 12% 30%;
+    --ring: 6 100% 73%;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Add direct color utility classes */
+.bg-vanilla-cream {
+  background-color: #fef9f5;
+}
+
+.bg-deep-cocoa {
+  background-color: #3d2c2e;
+}
+
+.bg-warm-coral {
+  background-color: #ff8474;
+}
+
+.bg-soft-peach {
+  background-color: #ffc6a8;
+}
+
+.bg-rose-dust {
+  background-color: #D9A5A0;
+}
+
+.text-vanilla-cream {
+  color: #fff6ef;
+}
+
+.text-deep-cocoa {
+  color: #3d2c2e;
+}
+
+.text-warm-coral {
+  color: #ff8474;
+}
+
+.text-soft-peach {
+  color: #ffc6a8;
+}
+
+.text-rose-dust {
+  color: #c36a62;
+}
+
+.border-vanilla-cream {
+  border-color: #fff6ef;
+}
+
+.border-deep-cocoa {
+  border-color: #3d2c2e;
+}
+
+.border-warm-coral {
+  border-color: #ff8474;
+}
+
+.border-soft-peach {
+  border-color: #ffc6a8;
+}
+
+.border-rose-dust {
+  border-color: #d9a5a0;
+}
+
+.fill-warm-coral {
+  fill: #ff8474;
 }

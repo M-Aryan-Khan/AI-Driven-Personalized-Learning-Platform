@@ -7,9 +7,7 @@ from app.utils.JWTtoken import create_access_token
 from app.db.mongo import db
 
 router = APIRouter(
-
     tags = ["Authentication"],
-    
 )
 
 @router.post("/register")
