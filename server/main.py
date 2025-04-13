@@ -2,8 +2,10 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes.user_routes import router as user_router
-from app.routes.course_routes import router as course_router
+from app.routes.student_routes import router as student_router
+from app.routes.educator_routes import router as educator_router
+from app.routes.authentication import router as authentication_router
+# from app.routes.course_routes import router as course_router
 
 app = FastAPI()
 
@@ -17,8 +19,10 @@ app.add_middleware(
 )
 
 # Include API routers. All endpoints are prefixed with /api
-app.include_router(user_router, prefix="/api")
-app.include_router(course_router, prefix="/api")
+app.include_router(authentication_router)
+app.include_router(student_router)
+app.include_router(educator_router)
+# app.include_router(course_router)
 
 @app.get("/")
 def root():
