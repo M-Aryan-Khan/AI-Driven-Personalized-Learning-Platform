@@ -3,10 +3,10 @@ import type { Config } from "tailwindcss"
 const config: Config = {
   darkMode: "class",
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
     "*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
@@ -19,23 +19,23 @@ const config: Config = {
     },
     extend: {
       colors: {
-        "vanilla-cream": "#FFF8F3",
-        "deep-cocoa": "#3D2C2E",
-        "warm-coral": "#FF8474",
-        "soft-peach": "#FFC6A8",
-        "rose-dust": "#D9A5A0",
+        "vanilla-cream": "#FFF8F0",
+        "soft-peach": "#FFD8CC",
+        "warm-coral": "#FF9A76",
+        "deep-cocoa": "#4A3933",
+        "rose-dust": "#C4A69D",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "#FF9A76",
+          foreground: "#4A3933",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "#FFD8CC",
+          foreground: "#4A3933",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -57,11 +57,6 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
         "accordion-down": {
