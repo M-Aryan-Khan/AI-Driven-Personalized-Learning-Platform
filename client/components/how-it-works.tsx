@@ -29,14 +29,14 @@ export default function HowItWorks() {
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
       {steps.map((step, index) => (
         <div key={index} className="text-center">
-          <div className="bg-vanilla-cream w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-            {step.icon}
+          <div className="bg-vanilla-cream w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <div className="w-6 h-6 sm:w-8 sm:h-8">{step.icon}</div>
           </div>
-          <h3 className="text-deep-cocoa font-bold text-xl mb-2">{step.title}</h3>
-          <p className="text-rose-dust">{step.description}</p>
+          <h3 className="text-deep-cocoa font-bold text-lg sm:text-xl mb-2">{step.title}</h3>
+          <p className="text-rose-dust text-sm sm:text-base">{step.description}</p>
         </div>
       ))}
     </div>

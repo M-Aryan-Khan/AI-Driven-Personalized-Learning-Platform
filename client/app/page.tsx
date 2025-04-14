@@ -2,25 +2,30 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, CheckCircle, Star, Code, LogIn, Globe } from "lucide-react"
+import { ArrowRight, CheckCircle, Star, Code, LogIn, Globe, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import TechCarousel from "@/components/tech-carousel"
 import TestimonialCard from "@/components/testimonial-card"
 import ExpertCard from "@/components/expert-card"
 import HowItWorks from "@/components/how-it-works"
 import heroImage from "./assets/hero-image.jpg"
-import { useRef } from "react"
-import { motion } from "framer-motion"
+import { useRef, useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 
 export default function Home() {
   // Ref for scroll animations
   const scrollRef = useRef(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen)
+  }
 
   return (
     <main className="min-h-screen bg-vanilla-cream overflow-x-hidden">
       {/* Navigation */}
       <motion.nav
-        className="container mx-auto py-4 px-4 md:px-0 lg:px-6 flex items-center justify-between sticky top-0 z-50 bg-vanilla-cream/95 backdrop-blur-sm"
+        className="container mx-auto py-4 px-4 md:px-6 flex items-center justify-between sticky top-0 z-50 bg-vanilla-cream/95 backdrop-blur-sm"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
@@ -45,6 +50,7 @@ export default function Home() {
           </Link>
         </div>
 
+        {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-3 lg:space-x-5 font-semibold">
           <Link href="#" className="text-deep-cocoa hover:text-warm-coral transition-colors relative group">
             Find an Expert
@@ -66,24 +72,91 @@ export default function Home() {
 
         <div className="flex items-center space-x-3">
           <motion.button
-            className="border-2 border-[#ffc6a8] hover:bg-[#fff2e7] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-4 rounded-lg py-2 text-md flex items-center gap-2"
+            className="hidden md:flex border-2 border-[#ffc6a8] hover:bg-[#fff2e7] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-4 rounded-lg py-2 text-md items-center gap-2"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <LogIn size={18} />
             Log In
           </motion.button>
+
+          {/* Mobile menu button */}
+          <motion.button
+            className="md:hidden flex items-center justify-center p-2 rounded-md text-deep-cocoa hover:text-warm-coral focus:outline-none"
+            onClick={toggleMobileMenu}
+            whileTap={{ scale: 0.95 }}
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </motion.button>
         </div>
       </motion.nav>
 
+      {/* Mobile Navigation Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            className="fixed inset-0 z-40 bg-vanilla-cream pt-20 px-4"
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="flex flex-col space-y-6 items-center">
+              <Link
+                href="#"
+                className="text-deep-cocoa text-xl font-semibold hover:text-warm-coral transition-colors w-full text-center py-3 border-b border-rose-dust/20"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Find an Expert
+              </Link>
+              <Link
+                href="#"
+                className="text-deep-cocoa text-xl font-semibold hover:text-warm-coral transition-colors w-full text-center py-3 border-b border-rose-dust/20"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Group Classes
+              </Link>
+              <Link
+                href="#"
+                className="text-deep-cocoa text-xl font-semibold hover:text-warm-coral transition-colors w-full text-center py-3 border-b border-rose-dust/20"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Community
+              </Link>
+              <Link
+                href="#"
+                className="text-deep-cocoa text-xl font-semibold hover:text-warm-coral transition-colors w-full text-center py-3 border-b border-rose-dust/20"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Become an Expert
+              </Link>
+              <motion.button
+                className="mt-4 border-2 border-[#ffc6a8] hover:bg-[#fff2e7] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-6 rounded-lg py-3 text-lg flex items-center gap-2"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <LogIn size={20} />
+                Log In
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Hero Section */}
-      <section className="container mx-auto px-4 md:px-6 py-12 md:py-20 lg:py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }}>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-deep-cocoa leading-tight">
+      <section className="container mx-auto px-4 md:px-6 py-8 md:py-16 lg:py-20 mt-4 md:mt-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+          <motion.div
+            className="order-2 md:order-1"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-deep-cocoa leading-tight">
               Master any IT skill with AI-powered learning
             </h1>
-            <div className="mt-6 space-y-4">
+            <div className="mt-4 md:mt-6 space-y-3 md:space-y-4">
               <motion.div
                 className="flex items-start gap-3 font-semibold"
                 initial={{ opacity: 0, y: 20 }}
@@ -91,7 +164,9 @@ export default function Home() {
                 transition={{ delay: 0.3, duration: 0.5 }}
               >
                 <CheckCircle className="text-warm-coral mt-[2px] flex-shrink-0" size={20} />
-                <p className="text-deep-cocoa">Take personalized 1-on-1 lessons with AI-matched expert mentors</p>
+                <p className="text-deep-cocoa text-sm sm:text-base">
+                  Take personalized 1-on-1 lessons with AI-matched expert mentors
+                </p>
               </motion.div>
               <motion.div
                 className="flex items-start gap-3 font-semibold"
@@ -100,7 +175,9 @@ export default function Home() {
                 transition={{ delay: 0.5, duration: 0.5 }}
               >
                 <CheckCircle className="text-warm-coral mt-[2px] flex-shrink-0" size={20} />
-                <p className="text-deep-cocoa">Learn from industry professionals that fit your budget and schedule</p>
+                <p className="text-deep-cocoa text-sm sm:text-base">
+                  Learn from industry professionals that fit your budget and schedule
+                </p>
               </motion.div>
               <motion.div
                 className="flex items-start gap-3 font-semibold"
@@ -109,17 +186,19 @@ export default function Home() {
                 transition={{ delay: 0.7, duration: 0.5 }}
               >
                 <CheckCircle className="text-warm-coral mt-[2px] flex-shrink-0" size={20} />
-                <p className="text-deep-cocoa">Connect with a global community of tech learners and professionals</p>
+                <p className="text-deep-cocoa text-sm sm:text-base">
+                  Connect with a global community of tech learners and professionals
+                </p>
               </motion.div>
             </div>
             <motion.div
-              className="mt-8"
+              className="mt-6 md:mt-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.5 }}
             >
               <motion.button
-                className="bg-[#ffc6a8] hover:bg-[#ffb289] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-10 rounded-xl py-4 text-lg flex items-center gap-2"
+                className="bg-[#ffc6a8] hover:bg-[#ffb289] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-6 sm:px-10 rounded-xl py-3 sm:py-4 text-base sm:text-lg flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start"
                 whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(255, 198, 168, 0.4)" }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -134,7 +213,7 @@ export default function Home() {
             </motion.div>
           </motion.div>
           <motion.div
-            className="relative"
+            className="relative order-1 md:order-2"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7 }}
@@ -146,63 +225,68 @@ export default function Home() {
                 width={600}
                 height={500}
                 className="w-full h-auto object-cover"
+                priority
               />
             </div>
             <motion.div
-              className="absolute -top-6 -right-6 bg-warm-coral rounded-full p-4 shadow-lg z-20"
+              className="absolute -top-4 -right-4 sm:-top-6 sm:-right-6 bg-warm-coral rounded-full p-3 sm:p-4 shadow-lg z-20"
               animate={{ rotate: 360 }}
               transition={{ duration: 20, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
             >
               <div className="text-white font-bold text-center">
-                <div className="text-2xl">AI</div>
-                <div className="text-sm">Powered</div>
+                <div className="text-xl sm:text-2xl">AI</div>
+                <div className="text-xs sm:text-sm">Powered</div>
               </div>
             </motion.div>
+
+            {/* Responsive adjustments for floating elements */}
             <motion.div
-              className="absolute -bottom-4 -left-4 bg-white rounded-lg p-3 shadow-lg z-20 flex items-center gap-2"
+              className="absolute -bottom-3 -left-3 sm:-bottom-4 sm:-left-4 bg-white rounded-lg p-2 sm:p-3 shadow-lg z-20 flex items-center gap-1 sm:gap-2"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.5 }}
               whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
             >
-              <Code className="text-warm-coral" />
-              <span className="text-deep-cocoa font-medium">{"<Code />"}</span>
+              <Code className="text-warm-coral w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="text-deep-cocoa font-medium text-sm sm:text-base">{"<Code />"}</span>
             </motion.div>
+
+            {/* Hide some elements on very small screens */}
             <motion.div
-              className="absolute top-1/4 -right-5 bg-white rounded-lg p-3 shadow-lg z-20"
+              className="absolute top-1/4 -right-3 sm:-right-5 bg-white rounded-lg p-2 sm:p-3 shadow-lg z-20 hidden xs:block"
               initial={{ x: 20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.7, duration: 0.5 }}
               whileHover={{ x: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
             >
-              <span className="text-deep-cocoa font-medium">Web Dev</span>
+              <span className="text-deep-cocoa font-medium text-sm sm:text-base">Web Dev</span>
             </motion.div>
             <motion.div
-              className="absolute bottom-1/3 -left-5 bg-white rounded-lg p-3 shadow-lg z-20"
+              className="absolute bottom-1/3 -left-3 sm:-left-5 bg-white rounded-lg p-2 sm:p-3 shadow-lg z-20 hidden xs:block"
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.9, duration: 0.5 }}
               whileHover={{ x: 5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
             >
-              <span className="text-deep-cocoa font-medium">DSA</span>
+              <span className="text-deep-cocoa font-medium text-sm sm:text-base">DSA</span>
             </motion.div>
             <motion.div
-              className="absolute top-1/3 -left-5 bg-white rounded-lg p-3 shadow-lg z-20"
+              className="absolute top-1/3 -left-3 sm:-left-5 bg-white rounded-lg p-2 sm:p-3 shadow-lg z-20 hidden sm:block"
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 1.1, duration: 0.5 }}
               whileHover={{ x: 5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
             >
-              <span className="text-deep-cocoa font-medium">Ui/Ux</span>
+              <span className="text-deep-cocoa font-medium text-sm sm:text-base">Ui/Ux</span>
             </motion.div>
             <motion.div
-              className="absolute bottom-1/6 -right-5 bg-white rounded-lg p-3 shadow-lg z-20"
+              className="absolute bottom-1/6 -right-3 sm:-right-5 bg-white rounded-lg p-2 sm:p-3 shadow-lg z-20 hidden sm:block"
               initial={{ x: 20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 1.3, duration: 0.5 }}
               whileHover={{ x: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
             >
-              <span className="text-deep-cocoa font-medium">DS</span>
+              <span className="text-deep-cocoa font-medium text-sm sm:text-base">DS</span>
             </motion.div>
           </motion.div>
         </div>
@@ -210,18 +294,18 @@ export default function Home() {
 
       {/* Tech Categories */}
       <motion.section
-        className="container mx-auto px-4 md:px-6 py-12 border-t border-rose-dust/20"
+        className="container mx-auto px-4 md:px-6 py-10 md:py-12 border-t border-rose-dust/20"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         transition={{ duration: 0.7 }}
         viewport={{ once: true, margin: "-100px" }}
       >
-        <h2 className="text-2xl md:text-3xl font-bold text-deep-cocoa text-center mb-8">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-deep-cocoa text-center mb-6 md:mb-8">
           Choose from TOP in-demand Tech Skills
         </h2>
         <TechCarousel />
 
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
+        <div className="mt-6 md:mt-8 flex flex-wrap justify-center gap-2 md:gap-3">
           {[
             "Web Development",
             "Data Structures",
@@ -240,7 +324,7 @@ export default function Home() {
             >
               <Button
                 variant="outline"
-                className="border-rose-dust text-deep-cocoa hover:bg-[#D9A5A0] transition-all ease-in-out duration-200"
+                className="border-rose-dust text-deep-cocoa hover:bg-[#D9A5A0] transition-all ease-in-out duration-200 text-xs sm:text-sm h-8 sm:h-10"
               >
                 {category}
               </Button>
@@ -251,38 +335,43 @@ export default function Home() {
 
       {/* How It Works */}
       <motion.section
-        className="bg-white py-16"
+        className="bg-white py-10 md:py-16"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         transition={{ duration: 0.7 }}
         viewport={{ once: true, margin: "-100px" }}
       >
         <div className="container mx-auto px-4 md:px-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-deep-cocoa text-center mb-12">How Synapse Works</h2>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-deep-cocoa text-center mb-8 md:mb-12">
+            How Synapse Works
+          </h2>
           <HowItWorks />
         </div>
       </motion.section>
 
       {/* Featured Experts */}
       <motion.section
-        className="container mx-auto px-4 md:px-6 py-16"
+        className="container mx-auto px-4 md:px-6 py-10 md:py-16"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         transition={{ duration: 0.7 }}
         viewport={{ once: true, margin: "-100px" }}
       >
-        <h2 className="text-2xl md:text-3xl font-bold text-deep-cocoa text-center mb-4">Learn from top tech experts</h2>
-        <p className="text-rose-dust text-center max-w-2xl mx-auto mb-12">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-deep-cocoa text-center mb-2 md:mb-4">
+          Learn from top tech experts
+        </h2>
+        <p className="text-rose-dust text-center max-w-2xl mx-auto mb-8 md:mb-12 text-sm sm:text-base">
           Our experts are carefully vetted industry professionals with real-world experience and a passion for teaching
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
             whileHover={{ y: -10, transition: { duration: 0.3 } }}
+            className="h-full"
           >
             <ExpertCard
               name="Alex Chen"
@@ -300,6 +389,7 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.5 }}
             viewport={{ once: true }}
             whileHover={{ y: -10, transition: { duration: 0.3 } }}
+            className="h-full"
           >
             <ExpertCard
               name="Sarah Johnson"
@@ -317,6 +407,7 @@ export default function Home() {
             transition={{ delay: 0.4, duration: 0.5 }}
             viewport={{ once: true }}
             whileHover={{ y: -10, transition: { duration: 0.3 } }}
+            className="h-full sm:col-span-2 lg:col-span-1 sm:max-w-md sm:mx-auto lg:max-w-none lg:mx-0 w-full"
           >
             <ExpertCard
               name="Michael Rodriguez"
@@ -330,9 +421,9 @@ export default function Home() {
           </motion.div>
         </div>
 
-        <div className="mt-10 text-center">
+        <div className="mt-8 md:mt-10 text-center">
           <motion.button
-            className="bg-[#ffc6a8] hover:bg-[#ffb289] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-8 rounded-xl py-4 text-lg flex items-center gap-2 mx-auto"
+            className="bg-[#ffc6a8] hover:bg-[#ffb289] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-6 sm:px-8 rounded-xl py-3 sm:py-4 text-base sm:text-lg flex items-center gap-2 mx-auto"
             whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(255, 198, 168, 0.4)" }}
             whileTap={{ scale: 0.95 }}
           >
@@ -341,7 +432,7 @@ export default function Home() {
               animate={{ rotate: [0, 20, 0, -20, 0] }}
               transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, ease: "easeInOut", repeatDelay: 1 }}
             >
-              <Globe size={22} />
+              <Globe size={20} className="sm:w-[22px] sm:h-[22px]" />
             </motion.div>
           </motion.button>
         </div>
@@ -349,114 +440,116 @@ export default function Home() {
 
       {/* Testimonials */}
       <motion.section
-      className="bg-white py-16"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      transition={{ duration: 0.7 }}
-      viewport={{ once: true, margin: "-100px" }}
-    >
-      <div className="container mx-auto px-4 md:px-6">
-        <h2 className="text-2xl md:text-3xl font-bold text-deep-cocoa text-center mb-4">
-          What our students say
-        </h2>
+        className="bg-white py-10 md:py-16"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.7 }}
+        viewport={{ once: true, margin: "-100px" }}
+      >
+        <div className="container mx-auto px-4 md:px-6">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-deep-cocoa text-center mb-4">
+            What our students say
+          </h2>
 
-        <div className="flex items-center justify-center gap-2 mb-12">
-          <div className="flex">
-            {[1, 2, 3, 4, 5].map((star, index) => (
-              <motion.div
-                key={star}
-                initial={{ opacity: 0, scale: 0 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1, duration: 0.3 }}
-                viewport={{ once: true }}
-              >
-                <Star className="text-warm-coral fill-warm-coral" size={20} />
-              </motion.div>
-            ))}
+          <div className="flex items-center justify-center gap-2 mb-8 md:mb-12">
+            <div className="flex">
+              {[1, 2, 3, 4, 5].map((star, index) => (
+                <motion.div
+                  key={star}
+                  initial={{ opacity: 0, scale: 0 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.1, duration: 0.3 }}
+                  viewport={{ once: true }}
+                >
+                  <Star className="text-warm-coral fill-warm-coral w-4 h-4 sm:w-5 sm:h-5" />
+                </motion.div>
+              ))}
+            </div>
+            <span className="text-deep-cocoa font-medium text-sm sm:text-base">
+              4.8 out of 5 based on 2,500+ reviews
+            </span>
           </div>
-          <span className="text-deep-cocoa font-medium">
-            4.8 out of 5 based on 2,500+ reviews
-          </span>
-        </div>
 
-        {/* Add items-stretch to force children to match height */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-          <motion.div
-            className="h-full"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-            whileHover={{ y: -10, transition: { duration: 0.3 } }}
-          >
-            <TestimonialCard
-              quote="Synapse matched me with the perfect mentor for my learning style. I went from struggling with basic JavaScript to building full-stack applications in just 3 months!"
-              author="Jamie L."
-              role="Junior Developer"
-              imageSrc="/placeholder.svg?height=100&width=100"
-            />
-          </motion.div>
-          <motion.div
-            className="h-full"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            viewport={{ once: true }}
-            whileHover={{ y: -10, transition: { duration: 0.3 } }}
-          >
-            <TestimonialCard
-              quote="The AI-powered learning path was a game-changer. It adapted to my progress and suggested exactly what I needed to focus on to ace my technical interviews."
-              author="Raj P."
-              role="Software Engineer"
-              imageSrc="/placeholder.svg?height=100&width=100"
-            />
-          </motion.div>
-          <motion.div
-            className="h-full"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-            viewport={{ once: true }}
-            whileHover={{ y: -10, transition: { duration: 0.3 } }}
-          >
-            <TestimonialCard
-              quote="As someone switching careers, I was overwhelmed by all the tech skills to learn. My Synapse mentor created a personalized roadmap that made the journey manageable and enjoyable."
-              author="Taylor K."
-              role="Career Switcher"
-              imageSrc="/placeholder.svg?height=100&width=100"
-            />
-          </motion.div>
+          {/* Add items-stretch to force children to match height */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 items-stretch">
+            <motion.div
+              className="h-full"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -10, transition: { duration: 0.3 } }}
+            >
+              <TestimonialCard
+                quote="Synapse matched me with the perfect mentor for my learning style. I went from struggling with basic JavaScript to building full-stack applications in just 3 months!"
+                author="Jamie L."
+                role="Junior Developer"
+                imageSrc="/placeholder.svg?height=100&width=100"
+              />
+            </motion.div>
+            <motion.div
+              className="h-full"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -10, transition: { duration: 0.3 } }}
+            >
+              <TestimonialCard
+                quote="The AI-powered learning path was a game-changer. It adapted to my progress and suggested exactly what I needed to focus on to ace my technical interviews."
+                author="Raj P."
+                role="Software Engineer"
+                imageSrc="/placeholder.svg?height=100&width=100"
+              />
+            </motion.div>
+            <motion.div
+              className="h-full sm:col-span-2 lg:col-span-1 sm:max-w-md sm:mx-auto lg:max-w-none lg:mx-0"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -10, transition: { duration: 0.3 } }}
+            >
+              <TestimonialCard
+                quote="As someone switching careers, I was overwhelmed by all the tech skills to learn. My Synapse mentor created a personalized roadmap that made the journey manageable and enjoyable."
+                author="Taylor K."
+                role="Career Switcher"
+                imageSrc="/placeholder.svg?height=100&width=100"
+              />
+            </motion.div>
+          </div>
         </div>
-      </div>
-    </motion.section>
+      </motion.section>
 
       {/* CTA Section */}
       <motion.section
-        className="container mx-auto px-4 md:px-6 py-16"
+        className="container mx-auto px-4 md:px-6 py-10 md:py-16"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         transition={{ duration: 0.7 }}
         viewport={{ once: true, margin: "-100px" }}
       >
         <motion.div
-          className="bg-soft-peach/30 rounded-2xl p-8 md:p-12 text-center"
+          className="bg-soft-peach/30 rounded-2xl p-6 sm:p-8 md:p-12 text-center"
           whileHover={{ boxShadow: "0 20px 40px -10px rgba(255, 198, 168, 0.3)" }}
           transition={{ duration: 0.3 }}
         >
-          <h2 className="text-2xl md:text-3xl font-bold text-deep-cocoa mb-4">Ready to accelerate your tech career?</h2>
-          <p className="text-deep-cocoa max-w-2xl mx-auto mb-8">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-deep-cocoa mb-3 md:mb-4">
+            Ready to accelerate your tech career?
+          </h2>
+          <p className="text-deep-cocoa max-w-2xl mx-auto mb-6 md:mb-8 text-sm sm:text-base">
             Join thousands of learners who are mastering in-demand tech skills with personalized, AI-powered learning
             paths and expert guidance.
           </p>
           <motion.button
-            className="bg-[#ff8474] hover:bg-[#FF7060] text-white mx-auto font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer px-6 rounded-lg py-3 text-lg flex items-center gap-2"
+            className="bg-[#ff8474] hover:bg-[#FF7060] text-white mx-auto font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer px-5 sm:px-6 rounded-lg py-2.5 sm:py-3 text-base sm:text-lg flex items-center gap-2 justify-center"
             whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(255, 132, 116, 0.4)" }}
             whileTap={{ scale: 0.95 }}
           >
             Get started for free
           </motion.button>
           <motion.p
-            className="mt-4 text-rose-dust font-semibold"
+            className="mt-3 md:mt-4 text-rose-dust font-semibold text-sm sm:text-base"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.5 }}
@@ -468,9 +561,9 @@ export default function Home() {
       </motion.section>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-rose-dust/20 py-12 font-semibold">
+      <footer className="bg-white border-t border-rose-dust/20 py-8 md:py-12 font-semibold">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             <div>
               <Link href="/" className="flex items-center gap-2 mb-4 group">
                 <div className="relative w-8 h-8">
@@ -489,11 +582,11 @@ export default function Home() {
                   Synapse
                 </span>
               </Link>
-              <p className="text-rose-dust">AI-powered learning platform for tech skills</p>
+              <p className="text-rose-dust text-sm sm:text-base">AI-powered learning platform for tech skills</p>
             </div>
 
-            <div>
-              <h3 className="font-semibold text-deep-cocoa mb-4">For Students</h3>
+            <div className="mt-6 sm:mt-0">
+              <h3 className="font-semibold text-deep-cocoa mb-3 md:mb-4 text-lg">For Students</h3>
               <ul className="space-y-2">
                 {["Find an Expert", "Group Classes", "Learning Paths", "Community"].map((item, index) => (
                   <motion.li
@@ -505,7 +598,7 @@ export default function Home() {
                   >
                     <Link
                       href="#"
-                      className="text-rose-dust hover:text-warm-coral transition-colors flex items-center gap-1"
+                      className="text-rose-dust hover:text-warm-coral transition-colors flex items-center gap-1 text-sm sm:text-base"
                     >
                       <motion.span whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
                         {item}
@@ -516,8 +609,8 @@ export default function Home() {
               </ul>
             </div>
 
-            <div>
-              <h3 className="font-semibold text-deep-cocoa mb-4">For Experts</h3>
+            <div className="mt-6 sm:mt-0">
+              <h3 className="font-semibold text-deep-cocoa mb-3 md:mb-4 text-lg">For Experts</h3>
               <ul className="space-y-2">
                 {["Become an Expert", "Teaching Resources", "Success Stories", "Expert Community"].map(
                   (item, index) => (
@@ -530,7 +623,7 @@ export default function Home() {
                     >
                       <Link
                         href="#"
-                        className="text-rose-dust hover:text-warm-coral transition-colors flex items-center gap-1"
+                        className="text-rose-dust hover:text-warm-coral transition-colors flex items-center gap-1 text-sm sm:text-base"
                       >
                         <motion.span whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
                           {item}
@@ -542,8 +635,8 @@ export default function Home() {
               </ul>
             </div>
 
-            <div>
-              <h3 className="font-semibold text-deep-cocoa mb-4">Company</h3>
+            <div className="mt-6 lg:mt-0">
+              <h3 className="font-semibold text-deep-cocoa mb-3 md:mb-4 text-lg">Company</h3>
               <ul className="space-y-2">
                 {["About Us", "Careers", "Blog", "Contact Us"].map((item, index) => (
                   <motion.li
@@ -555,7 +648,7 @@ export default function Home() {
                   >
                     <Link
                       href="#"
-                      className="text-rose-dust hover:text-warm-coral transition-colors flex items-center gap-1"
+                      className="text-rose-dust hover:text-warm-coral transition-colors flex items-center gap-1 text-sm sm:text-base"
                     >
                       <motion.span whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
                         {item}
@@ -567,14 +660,14 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="mt-12 pt-8 border-t border-rose-dust/20 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-rose-dust text-sm mb-4 md:mb-0">
+          <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-rose-dust/20 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-rose-dust text-xs sm:text-sm mb-4 md:mb-0">
               © {new Date().getFullYear()} Synapse. All rights reserved.
             </p>
-            <div className="flex gap-6">
+            <div className="flex gap-4 md:gap-6">
               {["Terms", "Privacy", "Cookies"].map((item, index) => (
                 <motion.div key={item} whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>
-                  <Link href="#" className="text-rose-dust hover:text-warm-coral">
+                  <Link href="#" className="text-rose-dust hover:text-warm-coral text-xs sm:text-sm">
                     {item}
                   </Link>
                 </motion.div>
