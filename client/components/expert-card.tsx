@@ -45,7 +45,7 @@ export default function ExpertCard({ name, specialty, rating, reviews, hourlyRat
             <p className="text-rose-dust text-sm">Hourly rate from</p>
             <p className="text-deep-cocoa font-bold">${hourlyRate}/hour</p>
           </div>
-          <Button className="bg-soft-peach hover:bg-[#FFB28C] text-deep-cocoa">View profile</Button>
+          <button className="bg-[#ffc6a8] hover:bg-[#ffb289] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-5 rounded-lg py-2 text-md flex items-center gap-2">View profile</button>
         </div>
       </div>
     </div>

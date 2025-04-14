@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, CheckCircle, Star, Code } from "lucide-react"
+import { ArrowRight, CheckCircle, Star, Code, LogIn, Globe} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import TechCarousel from "@/components/tech-carousel"
 import TestimonialCard from "@/components/testimonial-card"
@@ -39,10 +39,7 @@ export default function Home() {
         </div>
 
         <div className="flex items-center space-x-3">
-          <Link href="#" className="text-deep-cocoa hover:text-warm-coral transition-colors hidden md:inline-block">
-            Log in
-          </Link>
-          <Button className="bg-soft-peach hover:bg-[#FFB28C] text-deep-cocoa">Sign up</Button>
+          <button className="border-2 border-[#ffc6a8] hover:bg-[#fff2e7]  font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-4 rounded-lg py-2 text-md flex items-center gap-2"><LogIn size={18} />Log In</button>
         </div>
       </nav>
 
@@ -113,7 +110,7 @@ export default function Home() {
       {/* Tech Categories */}
       <section className="container mx-auto px-4 md:px-6 py-12 border-t border-rose-dust/20">
         <h2 className="text-2xl md:text-3xl font-bold text-deep-cocoa text-center mb-8">
-          Choose from 50+ in-demand Tech Skills
+          Choose from TOP in-demand Tech Skills
         </h2>
         <TechCarousel />
 
@@ -188,7 +185,7 @@ export default function Home() {
         </div>
 
         <div className="mt-10 text-center">
-          <Button className="bg-soft-peach hover:bg-[#FFB28C] text-deep-cocoa px-6">Browse all experts</Button>
+          <button className="bg-[#ffc6a8] hover:bg-[#ffb289] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-8 rounded-xl py-4 text-lg flex items-center gap-2 mx-auto">Browse all experts<Globe size={22}/></button>
         </div>
       </section>
 
@@ -237,15 +234,15 @@ export default function Home() {
             Join thousands of learners who are mastering in-demand tech skills with personalized, AI-powered learning
             paths and expert guidance.
           </p>
-          <Button className="bg-warm-coral hover:bg-[#FF7060] text-white px-8 py-6 text-lg">
+          <button className="bg-[#ff8474] hover:bg-[#FF7060] text-white mx-auto font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-6 rounded-lg  py-3 text-lg flex items-center gap-2">
             Get started for free
-          </Button>
-          <p className="mt-4 text-rose-dust">No credit card required</p>
+          </button>
+          <p className="mt-4 text-rose-dust font-semibold">*No credit card required</p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-rose-dust/20 py-12">
+      <footer className="bg-white border-t border-rose-dust/20 py-12 font-semibold">
         <div className="container mx-auto px-4 md:px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div>
