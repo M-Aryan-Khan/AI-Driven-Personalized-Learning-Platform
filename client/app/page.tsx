@@ -1,25 +1,48 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import Link from "next/link"
-import { ArrowRight, CheckCircle, Star, Code, LogIn, Globe, Menu, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import TechCarousel from "@/components/tech-carousel"
-import TestimonialCard from "@/components/testimonial-card"
-import ExpertCard from "@/components/expert-card"
-import HowItWorks from "@/components/how-it-works"
-import heroImage from "./assets/hero-image.jpg"
-import { useRef, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import Image from "next/image";
+import Link from "next/link";
+import {
+  ArrowRight,
+  CheckCircle,
+  Star,
+  Code,
+  LogIn,
+  Globe,
+  Menu,
+  X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import TechCarousel from "@/components/tech-carousel";
+import TestimonialCard from "@/components/testimonial-card";
+import ExpertCard from "@/components/expert-card";
+import HowItWorks from "@/components/how-it-works";
+import heroImage from "./assets/hero-image.jpg";
+import { useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  // Ref for scroll animations
-  const scrollRef = useRef(null)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const router = useRouter();
+  const scrollRef = useRef(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleLogin = () => {
+    router.push("/auth/login");
+  };
+  const handleTeacherSignup = () => {
+    setMobileMenuOpen(false);
+    router.push("/teach");
+  };
+
+  const handleStudentSignup = () => {
+    setMobileMenuOpen(false);
+    router.push("/auth/signup/student");
+  };
 
   const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen)
-  }
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
 
   return (
     <main className="min-h-screen bg-vanilla-cream overflow-x-hidden">
@@ -52,19 +75,31 @@ export default function Home() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-3 lg:space-x-5 font-semibold">
-          <Link href="#" className="text-deep-cocoa hover:text-warm-coral transition-colors relative group">
+          <Link
+            href="#"
+            className="text-deep-cocoa hover:text-warm-coral transition-colors relative group"
+          >
             Find an Expert
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-warm-coral transition-all duration-300 group-hover:w-full"></span>
           </Link>
-          <Link href="#" className="text-deep-cocoa hover:text-warm-coral transition-colors relative group">
+          <Link
+            href="#"
+            className="text-deep-cocoa hover:text-warm-coral transition-colors relative group"
+          >
             Group Classes
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-warm-coral transition-all duration-300 group-hover:w-full"></span>
           </Link>
-          <Link href="#" className="text-deep-cocoa hover:text-warm-coral transition-colors relative group">
+          <Link
+            href="#"
+            className="text-deep-cocoa hover:text-warm-coral transition-colors relative group"
+          >
             Community
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-warm-coral transition-all duration-300 group-hover:w-full"></span>
           </Link>
-          <Link href="#" className="text-deep-cocoa hover:text-warm-coral transition-colors relative group">
+          <Link
+            href="/teach"
+            className="text-deep-cocoa hover:text-warm-coral transition-colors relative group"
+          >
             Become an Expert
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-warm-coral transition-all duration-300 group-hover:w-full"></span>
           </Link>
@@ -75,6 +110,7 @@ export default function Home() {
             className="hidden md:flex border-2 border-[#ffc6a8] hover:bg-[#fff2e7] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-4 rounded-lg py-2 text-md items-center gap-2"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={handleLogin}
           >
             <LogIn size={18} />
             Log In
@@ -126,7 +162,7 @@ export default function Home() {
               <Link
                 href="#"
                 className="text-deep-cocoa text-xl font-semibold hover:text-warm-coral transition-colors w-full text-center py-3 border-b border-rose-dust/20"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={handleTeacherSignup}
               >
                 Become an Expert
               </Link>
@@ -163,9 +199,13 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
               >
-                <CheckCircle className="text-warm-coral mt-[2px] flex-shrink-0" size={20} />
+                <CheckCircle
+                  className="text-warm-coral mt-[2px] flex-shrink-0"
+                  size={20}
+                />
                 <p className="text-deep-cocoa text-sm sm:text-base">
-                  Take personalized 1-on-1 lessons with AI-matched expert mentors
+                  Take personalized 1-on-1 lessons with AI-matched expert
+                  mentors
                 </p>
               </motion.div>
               <motion.div
@@ -174,9 +214,13 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
               >
-                <CheckCircle className="text-warm-coral mt-[2px] flex-shrink-0" size={20} />
+                <CheckCircle
+                  className="text-warm-coral mt-[2px] flex-shrink-0"
+                  size={20}
+                />
                 <p className="text-deep-cocoa text-sm sm:text-base">
-                  Learn from industry professionals that fit your budget and schedule
+                  Learn from industry professionals that fit your budget and
+                  schedule
                 </p>
               </motion.div>
               <motion.div
@@ -185,9 +229,13 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7, duration: 0.5 }}
               >
-                <CheckCircle className="text-warm-coral mt-[2px] flex-shrink-0" size={20} />
+                <CheckCircle
+                  className="text-warm-coral mt-[2px] flex-shrink-0"
+                  size={20}
+                />
                 <p className="text-deep-cocoa text-sm sm:text-base">
-                  Connect with a global community of tech learners and professionals
+                  Connect with a global community of tech learners and
+                  professionals
                 </p>
               </motion.div>
             </div>
@@ -199,13 +247,21 @@ export default function Home() {
             >
               <motion.button
                 className="bg-[#ffc6a8] hover:bg-[#ffb289] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-6 sm:px-10 rounded-xl py-3 sm:py-4 text-base sm:text-lg flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start"
-                whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(255, 198, 168, 0.4)" }}
+                whileHover={{
+                  scale: 1.05,
+                  boxShadow: "0 10px 25px -5px rgba(255, 198, 168, 0.4)",
+                }}
                 whileTap={{ scale: 0.95 }}
+                onClick={handleStudentSignup}
               >
                 Start learning now
                 <motion.div
                   animate={{ x: [0, 5, 0] }}
-                  transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.5, ease: "easeInOut" }}
+                  transition={{
+                    repeat: Number.POSITIVE_INFINITY,
+                    duration: 1.5,
+                    ease: "easeInOut",
+                  }}
                 >
                   <ArrowRight size={18} />
                 </motion.div>
@@ -231,7 +287,11 @@ export default function Home() {
             <motion.div
               className="absolute -top-4 -right-4 sm:-top-6 sm:-right-6 bg-warm-coral rounded-full p-3 sm:p-4 shadow-lg z-20"
               animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+              transition={{
+                duration: 20,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "linear",
+              }}
             >
               <div className="text-white font-bold text-center">
                 <div className="text-xl sm:text-2xl">AI</div>
@@ -245,48 +305,73 @@ export default function Home() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.5 }}
-              whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+              whileHover={{
+                y: -5,
+                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+              }}
             >
               <Code className="text-warm-coral w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-deep-cocoa font-medium text-sm sm:text-base">{"<Code />"}</span>
+              <span className="text-deep-cocoa font-medium text-sm sm:text-base">
+                {"<Code />"}
+              </span>
             </motion.div>
 
             {/* Hide some elements on very small screens */}
             <motion.div
-              className="absolute top-1/4 -right-3 sm:-right-5 bg-white rounded-lg p-2 sm:p-3 shadow-lg z-20 hidden xs:block"
+              className="absolute top-1/4 -right-3 sm:-right-5 bg-white rounded-lg p-2 sm:p-3 shadow-lg z-20 hidden sm:block"
               initial={{ x: 20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.7, duration: 0.5 }}
-              whileHover={{ x: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+              whileHover={{
+                x: -5,
+                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+              }}
             >
-              <span className="text-deep-cocoa font-medium text-sm sm:text-base">Web Dev</span>
+              <span className="text-deep-cocoa font-medium text-sm sm:text-base">
+                Web Dev
+              </span>
             </motion.div>
             <motion.div
-              className="absolute bottom-1/3 -left-3 sm:-left-5 bg-white rounded-lg p-2 sm:p-3 shadow-lg z-20 hidden xs:block"
+              className="absolute bottom-1/3 -left-3 sm:-left-5 bg-white rounded-lg p-2 sm:p-3 shadow-lg z-20 hidden sm:block"
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.9, duration: 0.5 }}
-              whileHover={{ x: 5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+              whileHover={{
+                x: 5,
+                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+              }}
             >
-              <span className="text-deep-cocoa font-medium text-sm sm:text-base">DSA</span>
+              <span className="text-deep-cocoa font-medium text-sm sm:text-base">
+                DSA
+              </span>
             </motion.div>
             <motion.div
               className="absolute top-1/3 -left-3 sm:-left-5 bg-white rounded-lg p-2 sm:p-3 shadow-lg z-20 hidden sm:block"
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 1.1, duration: 0.5 }}
-              whileHover={{ x: 5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+              whileHover={{
+                x: 5,
+                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+              }}
             >
-              <span className="text-deep-cocoa font-medium text-sm sm:text-base">Ui/Ux</span>
+              <span className="text-deep-cocoa font-medium text-sm sm:text-base">
+                Ui/Ux
+              </span>
             </motion.div>
             <motion.div
               className="absolute bottom-1/6 -right-3 sm:-right-5 bg-white rounded-lg p-2 sm:p-3 shadow-lg z-20 hidden sm:block"
               initial={{ x: 20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 1.3, duration: 0.5 }}
-              whileHover={{ x: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+              whileHover={{
+                x: -5,
+                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+              }}
             >
-              <span className="text-deep-cocoa font-medium text-sm sm:text-base">DS</span>
+              <span className="text-deep-cocoa font-medium text-sm sm:text-base">
+                DS
+              </span>
             </motion.div>
           </motion.div>
         </div>
@@ -361,7 +446,8 @@ export default function Home() {
           Learn from top tech experts
         </h2>
         <p className="text-rose-dust text-center max-w-2xl mx-auto mb-8 md:mb-12 text-sm sm:text-base">
-          Our experts are carefully vetted industry professionals with real-world experience and a passion for teaching
+          Our experts are carefully vetted industry professionals with
+          real-world experience and a passion for teaching
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -424,13 +510,21 @@ export default function Home() {
         <div className="mt-8 md:mt-10 text-center">
           <motion.button
             className="bg-[#ffc6a8] hover:bg-[#ffb289] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-6 sm:px-8 rounded-xl py-3 sm:py-4 text-base sm:text-lg flex items-center gap-2 mx-auto"
-            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(255, 198, 168, 0.4)" }}
+            whileHover={{
+              scale: 1.05,
+              boxShadow: "0 10px 25px -5px rgba(255, 198, 168, 0.4)",
+            }}
             whileTap={{ scale: 0.95 }}
           >
             Browse all experts
             <motion.div
               animate={{ rotate: [0, 20, 0, -20, 0] }}
-              transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, ease: "easeInOut", repeatDelay: 1 }}
+              transition={{
+                repeat: Number.POSITIVE_INFINITY,
+                duration: 2,
+                ease: "easeInOut",
+                repeatDelay: 1,
+              }}
             >
               <Globe size={20} className="sm:w-[22px] sm:h-[22px]" />
             </motion.div>
@@ -531,20 +625,26 @@ export default function Home() {
       >
         <motion.div
           className="bg-soft-peach/30 rounded-2xl p-6 sm:p-8 md:p-12 text-center"
-          whileHover={{ boxShadow: "0 20px 40px -10px rgba(255, 198, 168, 0.3)" }}
+          whileHover={{
+            boxShadow: "0 20px 40px -10px rgba(255, 198, 168, 0.3)",
+          }}
           transition={{ duration: 0.3 }}
         >
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-deep-cocoa mb-3 md:mb-4">
             Ready to accelerate your tech career?
           </h2>
           <p className="text-deep-cocoa max-w-2xl mx-auto mb-6 md:mb-8 text-sm sm:text-base">
-            Join thousands of learners who are mastering in-demand tech skills with personalized, AI-powered learning
-            paths and expert guidance.
+            Join thousands of learners who are mastering in-demand tech skills
+            with personalized, AI-powered learning paths and expert guidance.
           </p>
           <motion.button
             className="bg-[#ff8474] hover:bg-[#FF7060] text-white mx-auto font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer px-5 sm:px-6 rounded-lg py-2.5 sm:py-3 text-base sm:text-lg flex items-center gap-2 justify-center"
-            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(255, 132, 116, 0.4)" }}
+            whileHover={{
+              scale: 1.05,
+              boxShadow: "0 10px 25px -5px rgba(255, 132, 116, 0.4)",
+            }}
             whileTap={{ scale: 0.95 }}
+            onClick={handleStudentSignup}
           >
             Get started for free
           </motion.button>
@@ -570,37 +670,49 @@ export default function Home() {
                   <motion.div
                     className="absolute w-8 h-8 bg-warm-coral rounded-lg transform rotate-45"
                     whileHover={{ rotate: 90 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.2 }}
                   ></motion.div>
                   <motion.div
                     className="absolute w-4 h-4 bg-soft-peach rounded-sm top-2 left-2"
                     whileHover={{ scale: 1.2 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.2 }}
                   ></motion.div>
                 </div>
                 <span className="text-deep-cocoa text-xl font-bold group-hover:text-warm-coral transition-colors">
                   Synapse
                 </span>
               </Link>
-              <p className="text-rose-dust text-sm sm:text-base">AI-powered learning platform for tech skills</p>
+              <p className="text-rose-dust text-sm sm:text-base">
+                AI-powered learning platform for tech skills
+              </p>
             </div>
 
             <div className="mt-6 sm:mt-0">
-              <h3 className="font-semibold text-deep-cocoa mb-3 md:mb-4 text-lg">For Students</h3>
+              <h3 className="font-semibold text-deep-cocoa mb-3 md:mb-4 text-lg">
+                For Students
+              </h3>
               <ul className="space-y-2">
-                {["Find an Expert", "Group Classes", "Learning Paths", "Community"].map((item, index) => (
+                {[
+                  "Find an Expert",
+                  "Group Classes",
+                  "Learning Paths",
+                  "Community",
+                ].map((item, index) => (
                   <motion.li
                     key={item}
-                    initial={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 0, x: -10 }}
                     whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1, duration: 0.3 }}
+                    transition={{ delay: index * 0.1, duration: 0.2 }}
                     viewport={{ once: true }}
                   >
                     <Link
                       href="#"
                       className="text-rose-dust hover:text-warm-coral transition-colors flex items-center gap-1 text-sm sm:text-base"
                     >
-                      <motion.span whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
+                      <motion.span
+                        whileHover={{ x: 2 }}
+                        transition={{ duration: 0.2 }}
+                      >
                         {item}
                       </motion.span>
                     </Link>
@@ -610,52 +722,67 @@ export default function Home() {
             </div>
 
             <div className="mt-6 sm:mt-0">
-              <h3 className="font-semibold text-deep-cocoa mb-3 md:mb-4 text-lg">For Experts</h3>
+              <h3 className="font-semibold text-deep-cocoa mb-3 md:mb-4 text-lg">
+                For Experts
+              </h3>
               <ul className="space-y-2">
-                {["Become an Expert", "Teaching Resources", "Success Stories", "Expert Community"].map(
+                {[
+                  "Become an Expert",
+                  "Teaching Resources",
+                  "Success Stories",
+                  "Expert Community",
+                ].map((item, index) => (
+                  <motion.li
+                    key={item}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 + 0.2, duration: 0.2 }}
+                    viewport={{ once: true }}
+                  >
+                    <Link
+                      href="/auth/signup/teach"
+                      className="text-rose-dust hover:text-warm-coral transition-colors flex items-center gap-1 text-sm sm:text-base"
+                    >
+                      <motion.span
+                        whileHover={{ x: 2 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {item}
+                      </motion.span>
+                    </Link>
+                  </motion.li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-6 lg:mt-0">
+              <h3 className="font-semibold text-deep-cocoa mb-3 md:mb-4 text-lg">
+                Company
+              </h3>
+              <ul className="space-y-2">
+                {["About Us", "Careers", "Blog", "Contact Us"].map(
                   (item, index) => (
                     <motion.li
                       key={item}
-                      initial={{ opacity: 0, x: -20 }}
+                      initial={{ opacity: 0, x: -10 }}
                       whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 + 0.2, duration: 0.3 }}
+                      transition={{ delay: index * 0.1 + 0.4, duration: 0.2 }}
                       viewport={{ once: true }}
                     >
                       <Link
                         href="#"
                         className="text-rose-dust hover:text-warm-coral transition-colors flex items-center gap-1 text-sm sm:text-base"
                       >
-                        <motion.span whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
+                        <motion.span
+                          whileHover={{ x: 2 }}
+                          transition={{ duration: 0.2 }}
+                        >
                           {item}
                         </motion.span>
                       </Link>
                     </motion.li>
-                  ),
+                  )
                 )}
-              </ul>
-            </div>
-
-            <div className="mt-6 lg:mt-0">
-              <h3 className="font-semibold text-deep-cocoa mb-3 md:mb-4 text-lg">Company</h3>
-              <ul className="space-y-2">
-                {["About Us", "Careers", "Blog", "Contact Us"].map((item, index) => (
-                  <motion.li
-                    key={item}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 + 0.4, duration: 0.3 }}
-                    viewport={{ once: true }}
-                  >
-                    <Link
-                      href="#"
-                      className="text-rose-dust hover:text-warm-coral transition-colors flex items-center gap-1 text-sm sm:text-base"
-                    >
-                      <motion.span whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
-                        {item}
-                      </motion.span>
-                    </Link>
-                  </motion.li>
-                ))}
               </ul>
             </div>
           </div>
@@ -666,8 +793,15 @@ export default function Home() {
             </p>
             <div className="flex gap-4 md:gap-6">
               {["Terms", "Privacy", "Cookies"].map((item, index) => (
-                <motion.div key={item} whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>
-                  <Link href="#" className="text-rose-dust hover:text-warm-coral text-xs sm:text-sm">
+                <motion.div
+                  key={item}
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Link
+                    href="#"
+                    className="text-rose-dust hover:text-warm-coral text-xs sm:text-sm"
+                  >
                     {item}
                   </Link>
                 </motion.div>
@@ -677,5 +811,5 @@ export default function Home() {
         </div>
       </footer>
     </main>
-  )
+  );
 }
