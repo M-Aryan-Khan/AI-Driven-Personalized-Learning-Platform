@@ -1,113 +1,163 @@
-"use client";
+"use client"
 
-import type React from "react";
+import type React from "react"
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowRight, Facebook } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import AuthHeader from "@/components/auth-header";
-import image1 from "@/app/assets/mockImages/image1.png";
-import image2 from "@/app/assets/mockImages/image2.png";
-import image3 from "@/app/assets/mockImages/image3.png";
-import image4 from "@/app/assets/mockImages/image4.png";
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import Image from "next/image"
+import Link from "next/link"
+import { motion } from "framer-motion"
+import { ArrowRight, Facebook, Eye, EyeOff } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
+import AuthHeader from "@/components/auth-header"
+import { toast } from "@/hooks/use-toast"
+import api from "@/lib/axios"
+import image1 from "@/app/assets/mockImages/image1.png"
+import image2 from "@/app/assets/mockImages/image2.png"
+import image3 from "@/app/assets/mockImages/image3.png"
+import image4 from "@/app/assets/mockImages/image4.png"
 
 export default function LoginPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") || "/";
-  const role = searchParams.get("role") || "student";
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get("redirectTo") || "/"
+  const role = searchParams.get("role") || "student"
+  const verified = searchParams.get("verified") === "true"
+  const reset = searchParams.get("reset") === "success"
+  const email = searchParams.get("email") || ""
 
   const [formData, setFormData] = useState({
-    email: "",
+    email: email,
     password: "",
     rememberMe: false,
-  });
+  })
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+
+  useEffect(() => {
+    // Show toast if user just verified their email
+    if (verified) {
+      toast({
+        title: "Email verified!",
+        description: "Your account has been successfully verified. You can now log in.",
+      })
+    }
+
+    // Show toast if user just reset their password
+    if (reset) {
+      toast({
+        title: "Password reset successful!",
+        description: "Your password has been reset. You can now log in with your new password.",
+      })
+    }
+  }, [verified, reset])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type, checked } = e.target
     setFormData({
       ...formData,
       [name]: type === "checkbox" ? checked : value,
-    });
+    })
 
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors({
         ...errors,
         [name]: "",
-      });
+      })
     }
-  };
+  }
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: Record<string, string> = {}
 
     // Email validation
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = "Email is required"
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
+      newErrors.email = "Email is invalid"
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = "Password is required";
+      newErrors.password = "Password is required"
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (validateForm()) {
-      setIsSubmitting(true);
+      setIsSubmitting(true)
 
       try {
-        // API call would go here
-        /* 
-        const response = await axios.post('/api/auth/login', {
-          email: formData.email,
-          password: formData.password,
-          rememberMe: formData.rememberMe
-        })
-        
-        if (response.status === 200) {
-          // Handle successful login
-          router.push(redirectTo)
+        const response = await api.post(
+          "/api/auth/login",
+          new URLSearchParams({
+            username: formData.email,
+            password: formData.password,
+          }),
+          {
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+          },
+        )
+
+        const data = response.data
+
+        // Check if user is verified
+        if (!data.is_verified) {
+          // Redirect to verification pending page
+          router.push(`/auth/verification-pending?email=${encodeURIComponent(formData.email)}`)
+          return
         }
-        */
 
-        // Simulate API call for now
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        toast({
+          title: "Login successful!",
+          description: "Welcome back to Synapse.",
+        })
 
-        // Redirect to dashboard based on role from the query param
-        router.push(
-          role === "teach" ? "/teach/dashboard" : "/student/dashboard"
-        );
-      } catch (error) {
-        console.error("Login error:", error);
-        setErrors({
-          form: "Invalid email or password. Please try again.",
-        });
+        // Redirect to dashboard based on role
+        router.push(data.role === "expert" ? "/teach/dashboard" : "/student/dashboard")
+      } catch (error: any) {
+        console.error("Login error:", error)
+
+        // Handle specific error cases
+        if (error.response?.status === 404) {
+          setErrors({
+            form: "User not found. Please check your email or sign up.",
+          })
+        } else if (error.response?.status === 401) {
+          setErrors({
+            form: "Invalid email or password. Please try again.",
+          })
+        } else {
+          setErrors({
+            form: "Login failed. Please try again.",
+          })
+        }
+
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: "Please check your credentials and try again.",
+        })
       } finally {
-        setIsSubmitting(false);
+        setIsSubmitting(false)
       }
     }
-  };
+  }
 
   const handleSocialLogin = async (provider: string) => {
-    setIsSubmitting(true);
+    setIsSubmitting(true)
 
     try {
       // Social login API call would go here
@@ -121,19 +171,21 @@ export default function LoginPage() {
       */
 
       // Simulate API call for now
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      // This would normally be handled by the OAuth redirect
-      router.push(role === "teach" ? "/teach/dashboard" : "/student/dashboard");
+      toast({
+        title: "Social login",
+        description: `${provider} login will be available soon.`,
+      })
     } catch (error) {
-      console.error(`${provider} login error:`, error);
+      console.error(`${provider} login error:`, error)
       setErrors({
         form: `An error occurred during ${provider} login. Please try again.`,
-      });
+      })
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-vanilla-cream flex flex-col">
@@ -149,12 +201,8 @@ export default function LoginPage() {
             transition={{ duration: 0.5 }}
           >
             <div className="text-center space-y-2">
-              <h1 className="text-2xl md:text-3xl font-bold text-deep-cocoa">
-                Welcome back to Synapse
-              </h1>
-              <p className="text-rose-dust">
-                Log in to continue your learning journey
-              </p>
+              <h1 className="text-2xl md:text-3xl font-bold text-deep-cocoa">Welcome back to Synapse</h1>
+              <p className="text-rose-dust">Log in to continue your learning journey</p>
             </div>
 
             {/* Login Form */}
@@ -169,32 +217,34 @@ export default function LoginPage() {
                   onChange={handleChange}
                   className={errors.email ? "border-red-500" : ""}
                 />
-                {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                )}
+                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="/auth/forgot-password"
-                    className="text-warm-coral hover:underline text-xs"
-                  >
+                  <Link href="/auth/forgot-password" className="text-warm-coral hover:underline text-xs">
                     Forgot password?
                   </Link>
                 </div>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={errors.password ? "border-red-500" : ""}
-                />
-                {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-                )}
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={handleChange}
+                    className={errors.password ? "border-red-500 pr-10" : "pr-10"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-rose-dust hover:text-deep-cocoa"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
               </div>
 
               <div className="flex items-center space-x-2">
@@ -202,9 +252,7 @@ export default function LoginPage() {
                   id="rememberMe"
                   name="rememberMe"
                   checked={formData.rememberMe}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, rememberMe: checked as boolean })
-                  }
+                  onCheckedChange={(checked) => setFormData({ ...formData, rememberMe: checked as boolean })}
                 />
                 <Label htmlFor="rememberMe" className="text-sm font-normal">
                   Remember me for 30 days
@@ -243,9 +291,7 @@ export default function LoginPage() {
                 <span className="w-full border-t border-rose-dust/20"></span>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-vanilla-cream px-2 text-rose-dust">
-                  Or continue with
-                </span>
+                <span className="bg-vanilla-cream px-2 text-rose-dust">Or continue with</span>
               </div>
             </div>
 
@@ -258,12 +304,7 @@ export default function LoginPage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  width="20"
-                  height="20"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
                   <path
                     fill="#4285F4"
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -304,13 +345,7 @@ export default function LoginPage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  width="20"
-                  height="20"
-                  fill="white"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="white">
                   <path d="M17.05 20.28c-.98.95-2.05.86-3.08.38-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.38C2.79 15.2 3.51 7.7 8.87 7.45c1.33.03 2.23.6 3.05.58.92-.03 1.75-.6 3.02-.64 1.93-.08 3.37.87 4.35 2.24-3.84 2.15-3.22 7.34.76 8.65ZM12.03 7.4C11.75 5.05 13.6 3.1 15.9 3c.38 2.55-2.25 4.46-3.87 4.4Z" />
                 </svg>
                 Continue with Apple
@@ -320,11 +355,7 @@ export default function LoginPage() {
             <div className="text-center text-sm text-rose-dust">
               Don't have an account yet?{" "}
               <Link
-                href={
-                  role === "teach"
-                    ? "/auth/signup/teach"
-                    : "/auth/signup/student"
-                }
+                href={role === "teach" ? "/auth/signup/teach" : "/auth/signup/student"}
                 className="text-warm-coral hover:underline font-semibold"
               >
                 Sign up
@@ -338,31 +369,24 @@ export default function LoginPage() {
           <div className="h-full w-full relative">
             <div className="absolute inset-0 bg-gradient-to-r from-soft-peach/80 to-transparent flex items-center">
               <div className="max-w-md p-8 lg:p-12">
-                <h2 className="text-3xl font-bold text-deep-cocoa mb-4">
-                  Learn from the best tech experts worldwide
-                </h2>
+                <h2 className="text-3xl font-bold text-deep-cocoa mb-4">Learn from the best tech experts worldwide</h2>
                 <p className="text-deep-cocoa mb-6">
-                  Synapse connects you with expert mentors who can help you
-                  master any tech skill through personalized 1-on-1 lessons.
+                  Synapse connects you with expert mentors who can help you master any tech skill through personalized
+                  1-on-1 lessons.
                 </p>
                 <div className="flex items-center gap-4 mb-8">
                   <div className="flex -space-x-4">
-                    {[image1.src, image2.src, image3.src, image4.src].map(
-                      (i) => (
-                        <div
-                          key={i}
-                          className="w-10 h-10 rounded-full border-2 border-white overflow-hidden"
-                        >
-                          <Image
-                            src={`${i}`}
-                            alt={`User ${i}`}
-                            width={40}
-                            height={40}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )
-                    )}
+                    {[image1.src, image2.src, image3.src, image4.src].map((i) => (
+                      <div key={i} className="w-10 h-10 rounded-full border-2 border-white overflow-hidden">
+                        <Image
+                          src={`${i}`}
+                          alt={`User ${i}`}
+                          width={40}
+                          height={40}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
                   </div>
                   <div className="text-deep-cocoa">
                     <p className="font-semibold">Join 10,000+ learners</p>
@@ -388,14 +412,13 @@ export default function LoginPage() {
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow-sm border border-rose-dust/10">
                   <p className="text-deep-cocoa italic text-sm">
-                    "The personalized learning experience on Synapse has been
-                    incredible. My mentor understood exactly what I needed and
-                    helped me land my dream job in tech."
+                    "The personalized learning experience on Synapse has been incredible. My mentor understood exactly
+                    what I needed and helped me land my dream job in tech."
                   </p>
                   <div className="flex items-center gap-3 mt-3">
                     <div className="w-10 h-10 rounded-full overflow-hidden">
                       <Image
-                        src={image2.src}
+                        src={image2.src || "/placeholder.svg"}
                         alt="Testimonial"
                         width={40}
                         height={40}
@@ -403,12 +426,8 @@ export default function LoginPage() {
                       />
                     </div>
                     <div>
-                      <p className="font-semibold text-deep-cocoa text-sm">
-                        Sarah Johnson
-                      </p>
-                      <p className="text-rose-dust text-xs">
-                        Software Engineer
-                      </p>
+                      <p className="font-semibold text-deep-cocoa text-sm">Sarah Johnson</p>
+                      <p className="text-rose-dust text-xs">Software Engineer</p>
                     </div>
                   </div>
                 </div>
@@ -418,5 +437,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

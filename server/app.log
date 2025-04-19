@@ -1,0 +1,37 @@
+2025-04-18 21:12:41,821 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 21:14:13,576 - app.utils.email - INFO - Email sent to mkhanaryan28@gmail.com
+2025-04-18 21:30:35,183 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 21:31:28,467 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 21:32:47,996 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 21:33:24,411 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 21:33:37,860 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 21:33:52,689 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 21:34:31,403 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 21:35:17,523 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 21:35:34,748 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 21:35:51,681 - app.utils.email - INFO - Email sent to mkhanaryan28@gmail.com
+2025-04-18 21:46:14,559 - app.utils.email - INFO - Email sent to mkhanaryan28@gmail.com
+2025-04-18 21:56:07,880 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 21:57:21,587 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 21:57:43,247 - app.db.mongo - INFO - Conected to MongoDB: synapseai
+2025-04-18 21:58:00,800 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 21:58:18,929 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 21:58:37,422 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-18 22:01:31,369 - app.utils.email - INFO - Email sent to mkhanaryan28@gmail.com
+2025-04-19 10:01:45,676 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-19 10:03:20,778 - app.utils.email - INFO - Email sent to mkhanaryan28@gmail.com
+2025-04-19 10:12:24,589 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-19 10:12:57,726 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-19 10:13:08,329 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-19 10:21:25,416 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-19 10:25:45,836 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-19 10:25:56,200 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-19 10:26:15,292 - app.utils.email - INFO - Email sent to mkhanaryan28@gmail.com
+2025-04-19 10:26:29,075 - app.routes.auth_routes - ERROR - Error verifying email: can't compare offset-naive and offset-aware datetimes
+2025-04-19 10:27:41,581 - app.utils.email - INFO - Email sent to mkhanaryan28@gmail.com
+2025-04-19 10:27:53,511 - app.routes.auth_routes - ERROR - Error verifying email: can't compare offset-naive and offset-aware datetimes
+2025-04-19 10:34:11,725 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-19 10:34:28,164 - app.utils.email - INFO - Email sent to mkhanaryan28@gmail.com
+2025-04-19 10:34:43,441 - app.utils.email - INFO - Email sent to mkhanaryan28@gmail.com
+2025-04-19 10:37:01,850 - app.utils.email - INFO - Email sent to armaus135@gmail.com
+2025-04-19 10:37:20,542 - app.utils.email - INFO - Email sent to armaus135@gmail.com

@@ -21,6 +21,9 @@ import heroImage from "./assets/hero-image.jpg";
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import image1 from "@/app/assets/mockImages/image1.png"
+import image2 from "@/app/assets/mockImages/image2.png"
+import image3 from "@/app/assets/mockImages/image3.png"
 
 export default function Home() {
   const router = useRouter();
@@ -578,7 +581,7 @@ export default function Home() {
                 quote="Synapse matched me with the perfect mentor for my learning style. I went from struggling with basic JavaScript to building full-stack applications in just 3 months!"
                 author="Jamie L."
                 role="Junior Developer"
-                imageSrc="/placeholder.svg?height=100&width=100"
+                imageSrc={image2.src}
               />
             </motion.div>
             <motion.div
@@ -593,7 +596,7 @@ export default function Home() {
                 quote="The AI-powered learning path was a game-changer. It adapted to my progress and suggested exactly what I needed to focus on to ace my technical interviews."
                 author="Raj P."
                 role="Software Engineer"
-                imageSrc="/placeholder.svg?height=100&width=100"
+                imageSrc={image3.src}
               />
             </motion.div>
             <motion.div
@@ -608,7 +611,7 @@ export default function Home() {
                 quote="As someone switching careers, I was overwhelmed by all the tech skills to learn. My Synapse mentor created a personalized roadmap that made the journey manageable and enjoyable."
                 author="Taylor K."
                 role="Career Switcher"
-                imageSrc="/placeholder.svg?height=100&width=100"
+                imageSrc={image1.src}
               />
             </motion.div>
           </div>
@@ -740,7 +743,7 @@ export default function Home() {
                     viewport={{ once: true }}
                   >
                     <Link
-                      href="/auth/signup/teach"
+                      href="/teach"
                       className="text-rose-dust hover:text-warm-coral transition-colors flex items-center gap-1 text-sm sm:text-base"
                     >
                       <motion.span

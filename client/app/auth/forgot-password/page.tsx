@@ -1,79 +1,92 @@
-"use client";
+"use client"
 
-import type React from "react";
+import type React from "react"
 
-import { useState } from "react";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import AuthHeader from "@/components/auth-header";
+import { useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
+import { ArrowRight, CheckCircle } from 'lucide-react'
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import AuthHeader from "@/components/auth-header"
+import { toast } from "@/hooks/use-toast"
+import api from "@/lib/axios"
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
+    setEmail(e.target.value)
 
     // Clear error when user starts typing
     if (errors.email) {
       setErrors({
         ...errors,
         email: "",
-      });
+      })
     }
-  };
+  }
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: Record<string, string> = {}
 
     // Email validation
     if (!email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = "Email is required"
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Email is invalid";
+      newErrors.email = "Email is invalid"
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (validateForm()) {
-      setIsSubmitting(true);
+      setIsSubmitting(true)
 
       try {
-        // API call would go here
-        /* 
-        const response = await axios.post('/api/auth/forgot-password', {
-          email
+        const response = await api.post("/api/auth/forgot-password", { email });
+
+        setIsSubmitted(true)
+        
+        toast({
+          title: "Reset code sent!",
+          description: "Please check your email for the password reset code.",
         })
         
-        if (response.status === 200) {
-          setIsSubmitted(true)
-        }
-        */
-
-        // Simulate API call for now
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-
-        setIsSubmitted(true);
-      } catch (error) {
-        console.error("Forgot password error:", error);
-        setErrors({
-          form: "An error occurred. Please try again.",
-        });
+        // Redirect to reset password page after a short delay
+        setTimeout(() => {
+          router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
+        }, 2000);
+      } catch (error: any) {
+        console.error("Forgot password error:", error)
+        
+        // Even if there's an error, we don't want to reveal if the email exists or not
+        // So we still show success message for security reasons
+        setIsSubmitted(true)
+        
+        toast({
+          title: "Reset code sent!",
+          description: "If your email is registered, you will receive a password reset code.",
+        })
+        
+        // Redirect to reset password page after a short delay
+        setTimeout(() => {
+          router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
+        }, 2000);
       } finally {
-        setIsSubmitting(false);
+        setIsSubmitting(false)
       }
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-vanilla-cream flex flex-col">
@@ -89,12 +102,9 @@ export default function ForgotPasswordPage() {
           {!isSubmitted ? (
             <>
               <div className="text-center space-y-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-deep-cocoa">
-                  Forgot your password?
-                </h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-deep-cocoa">Forgot your password?</h1>
                 <p className="text-rose-dust">
-                  Enter your email address and we'll send you a link to reset
-                  your password
+                  Enter your email address and we'll send you a code to reset your password
                 </p>
               </div>
 
@@ -108,9 +118,7 @@ export default function ForgotPasswordPage() {
                     onChange={handleChange}
                     className={errors.email ? "border-red-500" : ""}
                   />
-                  {errors.email && (
-                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                  )}
+                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                 </div>
 
                 <motion.button
@@ -124,7 +132,7 @@ export default function ForgotPasswordPage() {
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   ) : (
                     <>
-                      Reset Password
+                      Send Reset Code
                       <ArrowRight size={18} />
                     </>
                   )}
@@ -139,10 +147,7 @@ export default function ForgotPasswordPage() {
 
               <div className="text-center text-sm text-rose-dust">
                 Remember your password?{" "}
-                <Link
-                  href="/auth/login"
-                  className="text-warm-coral hover:underline font-semibold"
-                >
+                <Link href="/auth/login" className="text-warm-coral hover:underline font-semibold">
                   Back to login
                 </Link>
               </div>
@@ -153,25 +158,17 @@ export default function ForgotPasswordPage() {
                 <CheckCircle className="text-green-600" size={32} />
               </div>
 
-              <h2 className="text-xl font-bold text-deep-cocoa">
-                Check your email
-              </h2>
+              <h2 className="text-xl font-bold text-deep-cocoa">Check your email</h2>
 
               <p className="text-rose-dust">
-                We've sent a password reset link to{" "}
-                <span className="font-semibold text-deep-cocoa">{email}</span>
+                We've sent a password reset code to <span className="font-semibold text-deep-cocoa">{email}</span>
               </p>
 
-              <p className="text-sm text-rose-dust">
-                If you don't see it, please check your spam folder
-              </p>
+              <p className="text-sm text-rose-dust">If you don't see it, please check your spam folder</p>
 
               <div className="pt-4">
-                <Link
-                  href="/auth/login"
-                  className="text-warm-coral hover:underline font-semibold"
-                >
-                  Back to login
+                <Link href={`/auth/reset-password?email=${encodeURIComponent(email)}`} className="text-warm-coral hover:underline font-semibold">
+                  Enter reset code
                 </Link>
               </div>
             </div>
@@ -179,5 +176,5 @@ export default function ForgotPasswordPage() {
         </motion.div>
       </div>
     </div>
-  );
+  )
 }

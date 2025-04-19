@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Synapse Account</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #4A3933;
+            margin: 0;
+            padding: 0;
+            background-color: #FFF8F0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #FFD8CC;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FF9A76;
+        }
+        .content {
+            padding: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            background-color: #FF9A76;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            font-size: 12px;
+            color: #C4A69D;
+            border-top: 1px solid #FFD8CC;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Synapse</div>
+        </div>
+        <div class="content">
+            <h2>Verify Your Email Address</h2>
+            <p>Thank you for signing up with Synapse! To complete your registration, please verify your email address by clicking the button below:</p>
+            <div style="text-align: center;">
+                <a href="{{ verification_url }}" class="button">Verify Email Address</a>
+            </div>
+            <p>If you didn't create an account with Synapse, you can safely ignore this email.</p>
+            <p>If the button above doesn't work, copy and paste the following link into your browser:</p>
+            <p style="word-break: break-all;">{{ verification_url }}</p>
+        </div>
+        <div class="footer">
+            <p>&copy; {{ current_year }} Synapse. All rights reserved.</p>
+            <p><a href="{{ frontend_url }}">Visit our website</a></p>
+        </div>
+    </div>
+</body>
+</html>
