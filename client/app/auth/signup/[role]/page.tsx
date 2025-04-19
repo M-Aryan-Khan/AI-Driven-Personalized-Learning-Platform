@@ -1,33 +1,33 @@
-"use client"
+"use client";
 
-import { useRef } from "react"
+import { useRef } from "react";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useRouter, useParams, useSearchParams } from "next/navigation"
-import Link from "next/link"
-import { motion } from "framer-motion"
-import { ArrowRight, Facebook, Eye, EyeOff } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import AuthHeader from "@/components/auth-header"
-import { toast } from "@/hooks/use-toast"
-import api from "@/lib/axios"
+import { useState, useEffect } from "react";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { ArrowRight, Facebook, Eye, EyeOff } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import AuthHeader from "@/components/auth-header";
+import { toast } from "@/hooks/use-toast";
+import api from "@/lib/axios";
 
 export default function SignupPage() {
-  const router = useRouter()
-  const params = useParams()
-  const role = params.role as string
-  const searchParams = useSearchParams()
+  const router = useRouter();
+  const params = useParams();
+  const role = params.role as string;
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const emailParam = searchParams.get("email")
+    const emailParam = searchParams.get("email");
     if (emailParam) {
-      setFormData((prev) => ({ ...prev, email: emailParam }))
+      setFormData((prev) => ({ ...prev, email: emailParam }));
     }
-  }, [searchParams])
+  }, [searchParams]);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -38,160 +38,173 @@ export default function SignupPage() {
     agreeTerms: false,
     receiveUpdates: false,
     verificationCode: ["", "", "", "", "", ""],
-  })
+  });
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [step, setStep] = useState(1)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isVerifying, setIsVerifying] = useState(false)
-  const [registrationComplete, setRegistrationComplete] = useState(false)
-  const [verificationCode, setVerificationCode] = useState("")
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [step, setStep] = useState(1);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
 
   // Refs for verification code inputs
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Validate if we're on a valid role page
   useEffect(() => {
     if (role !== "teach" && role !== "student") {
-      router.push("/auth/signup/student")
+      router.push("/auth/signup/student");
     }
-  }, [role, router])
+  }, [role, router]);
 
-  const isTeacher = role === "teach"
+  const isTeacher = role === "teach";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
       [name]: type === "checkbox" ? checked : value,
-    })
+    });
 
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors({
         ...errors,
         [name]: "",
-      })
+      });
     }
-  }
+  };
 
   const handleCodeInputChange = (index: number, value: string) => {
     // Only allow digits
-    if (value && !/^\d+$/.test(value)) return
+    if (value && !/^\d+$/.test(value)) return;
 
     // Update the code array
-    const newCode = [...formData.verificationCode]
-    newCode[index] = value
+    const newCode = [...formData.verificationCode];
+    newCode[index] = value;
     setFormData({
       ...formData,
       verificationCode: newCode,
-    })
+    });
 
     // Clear error when user types
     if (errors.verificationCode) {
       setErrors({
         ...errors,
         verificationCode: "",
-      })
+      });
     }
 
     // Auto-focus next input if value is entered
-    if (value && index < 5 && inputRefs.current[index + 1]) {
-      inputRefs.current[index + 1].focus()
+    const nextInput = inputRefs.current[index + 1];
+    if (value && index < 5 && nextInput) {
+      nextInput.focus();
     }
-  }
+  };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
     // Handle backspace to go to previous input
-    if (e.key === "Backspace" && !formData.verificationCode[index] && index > 0 && inputRefs.current[index - 1]) {
-      inputRefs.current[index - 1].focus()
+    if (
+      e.key === "Backspace" &&
+      !formData.verificationCode[index] &&
+      index > 0
+    ) {
+      const prevInput = inputRefs.current[index - 1];
+      if (prevInput) prevInput.focus();
     }
 
     // Handle arrow keys
-    if (e.key === "ArrowLeft" && index > 0 && inputRefs.current[index - 1]) {
-      inputRefs.current[index - 1].focus()
+    if (e.key === "ArrowLeft" && index > 0) {
+      const prevInput = inputRefs.current[index - 1];
+      if (prevInput) prevInput.focus();
     }
-    if (e.key === "ArrowRight" && index < 5 && inputRefs.current[index + 1]) {
-      inputRefs.current[index + 1].focus()
+
+    if (e.key === "ArrowRight" && index < 5) {
+      const nextInput = inputRefs.current[index + 1];
+      if (nextInput) nextInput.focus();
     }
-  }
+  };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault()
-    const pastedData = e.clipboardData.getData("text").trim()
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").trim();
 
     // Check if pasted content is a 6-digit number
     if (/^\d{6}$/.test(pastedData)) {
-      const digits = pastedData.split("")
+      const digits = pastedData.split("");
       setFormData({
         ...formData,
         verificationCode: digits,
-      })
+      });
 
       // Focus last input after paste
       if (inputRefs.current[5]) {
-        inputRefs.current[5].focus()
+        inputRefs.current[5].focus();
       }
     }
-  }
+  };
 
   const validateStep1 = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
-    if (!formData.firstName.trim()) newErrors.firstName = "First name is required"
-    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required"
+    if (!formData.firstName.trim())
+      newErrors.firstName = "First name is required";
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
 
     // Email validation
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required"
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid"
+      newErrors.email = "Email is invalid";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const validateStep2 = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = "Password is required"
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters"
+      newErrors.password = "Password must be at least 8 characters";
     }
 
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match"
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     if (!formData.agreeTerms) {
-      newErrors.agreeTerms = "You must agree to the terms and conditions"
+      newErrors.agreeTerms = "You must agree to the terms and conditions";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const validateVerificationCode = () => {
-    const code = formData.verificationCode.join("")
+    const code = formData.verificationCode.join("");
     if (code.length !== 6) {
       setErrors({
         verificationCode: "Please enter all 6 digits of the verification code",
-      })
-      return false
+      });
+      return false;
     }
-    return true
-  }
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (validateStep2()) {
-      setIsSubmitting(true)
+      setIsSubmitting(true);
 
       try {
         // Prepare data for API
@@ -203,121 +216,137 @@ export default function SignupPage() {
           confirm_password: formData.confirmPassword,
           agree_terms: formData.agreeTerms,
           receive_updates: formData.receiveUpdates,
-        }
+        };
 
         // Call the appropriate API endpoint based on role
-        const endpoint = isTeacher ? "/api/auth/register/expert" : "/api/auth/register/student"
-        const response = await api.post(endpoint, userData)
+        const endpoint = isTeacher
+          ? "/api/auth/register/expert"
+          : "/api/auth/register/student";
+        const response = await api.post(endpoint, userData);
 
         // Show success message
         toast({
           title: "Registration successful!",
           description: "Please verify your email with the code we sent you.",
-        })
+        });
 
         // Move to verification step
-        setStep(3)
-        setRegistrationComplete(true)
+        setStep(3);
+        setRegistrationComplete(true);
 
         // Focus first verification code input
         setTimeout(() => {
           if (inputRefs.current[0]) {
-            inputRefs.current[0].focus()
+            inputRefs.current[0].focus();
           }
-        }, 100)
+        }, 100);
       } catch (error: any) {
-        console.error("Signup error:", error)
+        console.error("Signup error:", error);
 
         const errorMessage =
-          error.response?.data?.detail || error.message || "An error occurred during signup. Please try again."
+          error.response?.data?.detail ||
+          error.message ||
+          "An error occurred during signup. Please try again.";
 
         setErrors({
           form: errorMessage,
-        })
+        });
 
         toast({
           title: "Registration failed",
           description: errorMessage,
           variant: "destructive",
-        })
+        });
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     }
-  }
+  };
 
   const handleVerifyEmail = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (validateVerificationCode()) {
-      setIsVerifying(true)
+      setIsVerifying(true);
 
       try {
         const response = await api.post("/api/auth/verify-email", {
           email: formData.email,
           verification_code: formData.verificationCode.join(""),
-        })
+        });
 
         toast({
           title: "Email verified!",
-          description: "Your account has been successfully verified. You can now log in.",
-        })
+          description:
+            "Your account has been successfully verified. You can now log in.",
+        });
 
         // Redirect to login page
-        router.push(`/auth/login?verified=true&email=${encodeURIComponent(formData.email)}`)
+        router.push(
+          `/auth/login?verified=true&email=${encodeURIComponent(
+            formData.email
+          )}`
+        );
       } catch (error: any) {
-        console.error("Verification error:", error)
+        console.error("Verification error:", error);
 
         const errorMessage =
-          error.response?.data?.detail || error.message || "Verification failed. Please check your code and try again."
+          error.response?.data?.detail ||
+          error.message ||
+          "Verification failed. Please check your code and try again.";
 
         setErrors({
           verificationCode: errorMessage,
-        })
+        });
 
         toast({
           variant: "destructive",
           title: "Verification failed",
           description: errorMessage,
-        })
+        });
       } finally {
-        setIsVerifying(false)
+        setIsVerifying(false);
       }
     }
-  }
+  };
 
   const handleResendCode = async () => {
     try {
-      const response = await api.post("/api/auth/resend-verification", { email: formData.email })
+      const response = await api.post("/api/auth/resend-verification", {
+        email: formData.email,
+      });
 
       toast({
         title: "Verification code sent!",
         description: "Please check your email for the new verification code.",
-      })
+      });
 
       // Reset verification code inputs
       setFormData({
         ...formData,
         verificationCode: ["", "", "", "", "", ""],
-      })
+      });
       if (inputRefs.current[0]) {
-        inputRefs.current[0].focus()
+        inputRefs.current[0].focus();
       }
     } catch (error: any) {
-      console.error("Resend error:", error)
+      console.error("Resend error:", error);
 
-      const errorMessage = error.response?.data?.detail || error.message || "Failed to resend verification code"
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.message ||
+        "Failed to resend verification code";
 
       toast({
         variant: "destructive",
         title: "Error",
         description: errorMessage,
-      })
+      });
     }
-  }
+  };
 
   const handleSocialSignup = async (provider: string) => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       // In a real implementation, you would redirect to OAuth provider
@@ -325,34 +354,34 @@ export default function SignupPage() {
       toast({
         title: "Social signup not implemented",
         description: `${provider} signup will be available soon.`,
-      })
+      });
 
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     } catch (error) {
-      console.error(`${provider} signup error:`, error)
+      console.error(`${provider} signup error:`, error);
       setErrors({
         form: `An error occurred during ${provider} signup. Please try again.`,
-      })
-      setIsSubmitting(false)
+      });
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const nextStep = () => {
     if (step === 1) {
       // Validate first step fields
       if (validateStep1()) {
-        setStep(2)
+        setStep(2);
       }
     }
-  }
+  };
 
   const prevStep = () => {
     if (step === 2) {
-      setStep(1)
+      setStep(1);
     } else if (step === 3) {
-      setStep(2)
+      setStep(2);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-vanilla-cream flex flex-col">
@@ -369,14 +398,18 @@ export default function SignupPage() {
           >
             <div className="text-center space-y-2">
               <h1 className="text-2xl md:text-3xl font-bold text-deep-cocoa">
-                {step === 3 ? "Verify Your Email" : isTeacher ? "Become a Synapse Expert" : "Join Synapse as a Student"}
+                {step === 3
+                  ? "Verify Your Email"
+                  : isTeacher
+                  ? "Become a Synapse Expert"
+                  : "Join Synapse as a Student"}
               </h1>
               <p className="text-rose-dust">
                 {step === 3
                   ? `Enter the 6-digit verification code sent to ${formData.email}`
                   : isTeacher
-                    ? "Share your expertise and earn teaching tech skills"
-                    : "Start your journey to master tech skills with expert guidance"}
+                  ? "Share your expertise and earn teaching tech skills"
+                  : "Start your journey to master tech skills with expert guidance"}
               </p>
             </div>
 
@@ -387,12 +420,16 @@ export default function SignupPage() {
                   {formData.verificationCode.map((digit, index) => (
                     <input
                       key={index}
-                      ref={(el) => (inputRefs.current[index] = el)}
+                      ref={(el) => {
+                        inputRefs.current[index] = el;
+                      }}
                       type="text"
                       inputMode="numeric"
                       maxLength={1}
                       value={digit}
-                      onChange={(e) => handleCodeInputChange(index, e.target.value)}
+                      onChange={(e) =>
+                        handleCodeInputChange(index, e.target.value)
+                      }
                       onKeyDown={(e) => handleKeyDown(index, e)}
                       onPaste={index === 0 ? handlePaste : undefined}
                       className="w-12 h-14 text-center text-xl font-bold border border-rose-dust/30 rounded-md focus:border-warm-coral focus:ring-1 focus:ring-warm-coral outline-none"
@@ -439,7 +476,9 @@ export default function SignupPage() {
                 </div>
 
                 <div className="text-center">
-                  <p className="text-sm text-rose-dust mb-2">Didn't receive the code?</p>
+                  <p className="text-sm text-rose-dust mb-2">
+                    Didn't receive the code?
+                  </p>
                   <button
                     type="button"
                     onClick={handleResendCode}
@@ -469,7 +508,11 @@ export default function SignupPage() {
                           className={errors.firstName ? "border-red-500" : ""}
                         />
                         <div className="min-h-[0.5rem]">
-                          {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
+                          {errors.firstName && (
+                            <p className="text-red-500 text-xs mt-1">
+                              {errors.firstName}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -482,7 +525,11 @@ export default function SignupPage() {
                           className={errors.lastName ? "border-red-500" : ""}
                         />
                         <div className="min-h-[0.5rem]">
-                          {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
+                          {errors.lastName && (
+                            <p className="text-red-500 text-xs mt-1">
+                              {errors.lastName}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -498,7 +545,11 @@ export default function SignupPage() {
                         className={errors.email ? "border-red-500 " : ""}
                       />
                       <div className="min-h-[0.5rem]">
-                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                        {errors.email && (
+                          <p className="text-red-500 text-xs mt-1">
+                            {errors.email}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -532,18 +583,30 @@ export default function SignupPage() {
                           type={showPassword ? "text" : "password"}
                           value={formData.password}
                           onChange={handleChange}
-                          className={errors.password ? "border-red-500 pr-10" : "pr-10"}
+                          className={
+                            errors.password ? "border-red-500 pr-10" : "pr-10"
+                          }
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-rose-dust hover:text-deep-cocoa"
                         >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
-                      {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-                      <p className="text-xs text-rose-dust">Must be at least 8 characters</p>
+                      {errors.password && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.password}
+                        </p>
+                      )}
+                      <p className="text-xs text-rose-dust">
+                        Must be at least 8 characters
+                      </p>
                     </div>
 
                     <div className="space-y-2">
@@ -555,17 +618,31 @@ export default function SignupPage() {
                           type={showConfirmPassword ? "text" : "password"}
                           value={formData.confirmPassword}
                           onChange={handleChange}
-                          className={errors.confirmPassword ? "border-red-500 pr-10" : "pr-10"}
+                          className={
+                            errors.confirmPassword
+                              ? "border-red-500 pr-10"
+                              : "pr-10"
+                          }
                         />
                         <button
                           type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-rose-dust hover:text-deep-cocoa"
                         >
-                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
-                      {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
+                      {errors.confirmPassword && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.confirmPassword}
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-3">
@@ -583,17 +660,30 @@ export default function SignupPage() {
                           className="mt-1"
                         />
                         <div>
-                          <Label htmlFor="agreeTerms" className="text-sm font-normal">
+                          <Label
+                            htmlFor="agreeTerms"
+                            className="text-sm font-normal"
+                          >
                             I agree to the{" "}
-                            <Link href="/terms" className="text-warm-coral hover:underline">
+                            <Link
+                              href="/terms"
+                              className="text-warm-coral hover:underline"
+                            >
                               Terms of Service
                             </Link>{" "}
                             and{" "}
-                            <Link href="/privacy" className="text-warm-coral hover:underline">
+                            <Link
+                              href="/privacy"
+                              className="text-warm-coral hover:underline"
+                            >
                               Privacy Policy
                             </Link>
                           </Label>
-                          {errors.agreeTerms && <p className="text-red-500 text-xs mt-1">{errors.agreeTerms}</p>}
+                          {errors.agreeTerms && (
+                            <p className="text-red-500 text-xs mt-1">
+                              {errors.agreeTerms}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -610,8 +700,12 @@ export default function SignupPage() {
                           }
                           className="mt-1"
                         />
-                        <Label htmlFor="receiveUpdates" className="text-sm font-normal">
-                          I want to receive updates about new features, experts, and promotions
+                        <Label
+                          htmlFor="receiveUpdates"
+                          className="text-sm font-normal"
+                        >
+                          I want to receive updates about new features, experts,
+                          and promotions
                         </Label>
                       </div>
                     </div>
@@ -633,7 +727,8 @@ export default function SignupPage() {
                         className="flex-1 w-full bg-warm-coral hover:bg-[#ff8c61] text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 cursor-pointer"
                         whileHover={{
                           scale: 1.02,
-                          boxShadow: "0 10px 25px -5px rgba(255, 132, 116, 0.4)",
+                          boxShadow:
+                            "0 10px 25px -5px rgba(255, 132, 116, 0.4)",
                         }}
                         whileTap={{ scale: 0.95 }}
                       >
@@ -665,7 +760,9 @@ export default function SignupPage() {
                     <span className="w-full border-t border-rose-dust/20"></span>
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-vanilla-cream px-2 text-rose-dust">Or continue with</span>
+                    <span className="bg-vanilla-cream px-2 text-rose-dust">
+                      Or continue with
+                    </span>
                   </div>
                 </div>
 
@@ -678,7 +775,12 @@ export default function SignupPage() {
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      width="20"
+                      height="20"
+                    >
                       <path
                         fill="#4285F4"
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -719,7 +821,13 @@ export default function SignupPage() {
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="white">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      width="20"
+                      height="20"
+                      fill="white"
+                    >
                       <path d="M17.05 20.28c-.98.95-2.05.86-3.08.38-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.38C2.79 15.2 3.51 7.7 8.87 7.45c1.33.03 2.23.6 3.05.58.92-.03 1.75-.6 3.02-.64 1.93-.08 3.37.87 4.35 2.24-3.84 2.15-3.22 7.34.76 8.65ZM12.03 7.4C11.75 5.05 13.6 3.1 15.9 3c.38 2.55-2.25 4.46-3.87 4.4Z" />
                     </svg>
                     Continue with Apple
@@ -728,7 +836,10 @@ export default function SignupPage() {
 
                 <div className="text-center text-sm text-rose-dust">
                   Already have an account?{" "}
-                  <Link href="/auth/login" className="text-warm-coral hover:underline font-semibold">
+                  <Link
+                    href="/auth/login"
+                    className="text-warm-coral hover:underline font-semibold"
+                  >
                     Log in
                   </Link>
                 </div>
@@ -738,5 +849,5 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
