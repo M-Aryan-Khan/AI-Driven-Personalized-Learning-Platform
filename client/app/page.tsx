@@ -7,10 +7,9 @@ import {
   CheckCircle,
   Star,
   Code,
-  LogIn,
-  Globe,
   Menu,
   X,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TechCarousel from "@/components/tech-carousel";
@@ -21,18 +20,17 @@ import heroImage from "./assets/hero-image.jpg";
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import image1 from "@/app/assets/mockImages/image1.png"
-import image2 from "@/app/assets/mockImages/image2.png"
-import image3 from "@/app/assets/mockImages/image3.png"
+import image1 from "@/app/assets/mockImages/image1.png";
+import image2 from "@/app/assets/mockImages/image2.png";
+import image3 from "@/app/assets/mockImages/image3.png";
+import AuthNavButton from "@/components/auth-nav-button";
+import MobileAuthButton from "@/components/mobile-auth-button";
 
 export default function Home() {
   const router = useRouter();
   const scrollRef = useRef(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogin = () => {
-    router.push("/auth/login");
-  };
   const handleTeacherSignup = () => {
     setMobileMenuOpen(false);
     router.push("/teach");
@@ -109,15 +107,7 @@ export default function Home() {
         </div>
 
         <div className="flex items-center space-x-3">
-          <motion.button
-            className="hidden md:flex border-2 border-[#ffc6a8] hover:bg-[#fff2e7] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-4 rounded-lg py-2 text-md items-center gap-2"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleLogin}
-          >
-            <LogIn size={18} />
-            Log In
-          </motion.button>
+          <AuthNavButton className="hidden md:flex" />
 
           {/* Mobile menu button */}
           <motion.button
@@ -169,15 +159,7 @@ export default function Home() {
               >
                 Become an Expert
               </Link>
-              <motion.button
-                className="mt-4 border-2 border-[#ffc6a8] hover:bg-[#fff2e7] font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer text-deep-cocoa px-6 rounded-lg py-3 text-lg flex items-center gap-2"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <LogIn size={20} />
-                Log In
-              </motion.button>
+              <MobileAuthButton onClick={() => setMobileMenuOpen(false)} />
             </div>
           </motion.div>
         )}

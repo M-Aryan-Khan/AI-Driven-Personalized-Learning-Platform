@@ -31,6 +31,8 @@ import CountUp from "react-countup";
 import image1 from "@/app/assets/mockImages/image1.png";
 import image2 from "@/app/assets/mockImages/image2.png";
 import image3 from "@/app/assets/mockImages/image3.png";
+import AuthNavButton from "@/components/auth-nav-button";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function TeachPage() {
   const [email, setEmail] = useState("");
@@ -40,6 +42,7 @@ export default function TeachPage() {
     once: true,
     margin: "-100px",
   });
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,24 +112,21 @@ export default function TeachPage() {
         </div>
 
         <div className="flex items-center space-x-3">
-          <Link
-            href="/auth/login"
-            className="text-deep-cocoa hover:text-warm-coral font-semibold"
-          >
-            Log in
-          </Link>
-          <Link href="/auth/signup/teach">
-            <motion.button
-              className="bg-[#ff8474] hover:bg-[#FF7060] text-white mx-auto font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer px-4 rounded-lg py-2 flex items-center"
-              whileHover={{
-                scale: 1.05,
-                boxShadow: "0 10px 25px -5px rgba(255, 132, 116, 0.4)",
-              }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Become an Expert
-            </motion.button>
-          </Link>
+          <AuthNavButton />
+          {!user && (
+            <Link href="/auth/signup/teach">
+              <motion.button
+                className="bg-[#ff8474] hover:bg-[#FF7060] text-white mx-auto font-semibold transition-all ease-in-out duration-200 hover:cursor-pointer px-4 rounded-lg py-2 flex items-center"
+                whileHover={{
+                  scale: 1.05,
+                  boxShadow: "0 10px 25px -5px rgba(255, 132, 116, 0.4)",
+                }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Become an Expert
+              </motion.button>
+            </Link>
+          )}
         </div>
       </motion.nav>
 
@@ -141,7 +141,7 @@ export default function TeachPage() {
           >
             <div className="relative z-10 rounded-2xl overflow-hidden shadow-xl">
               <Image
-                src={teacher.src}
+                src={teacher.src || "/placeholder.svg"}
                 alt="Tech expert teaching online"
                 width={400}
                 height={400}

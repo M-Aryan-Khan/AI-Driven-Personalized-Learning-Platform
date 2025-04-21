@@ -7,7 +7,7 @@ import os
 import logging
 import secrets
 
-from ..models.user import UserCreate, Token, PasswordReset, VerifyEmail, ResetPassword
+from ..models.user import UserCreate, Token, PasswordReset, VerifyEmail, ResetPassword, UserLogin
 from ..models.student import StudentCreate
 from ..models.expert import ExpertCreate
 from ..utils.hash import (
@@ -25,6 +25,7 @@ from ..utils.email import (
 )
 from ..utils.auth import get_current_user, get_current_active_user, get_current_user_from_cookie
 from ..db.mongo import db
+import string
 
 router = APIRouter(
     prefix="/api/auth",
@@ -293,92 +294,70 @@ async def resend_verification(email_data: PasswordReset):
         )
 
 @router.post("/login", response_model=Token)
-async def login(
-    response: Response,
-    form_data: OAuth2PasswordRequestForm = Depends()
-):
-    """
-    Login user and return JWT token
-    """
-    try:
-        # Check if user exists in students collection
-        user = db.students.find_one({"email": form_data.username})
-        role = "student"
+async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends()):
+    # Find user in database
+    student = db.students.find_one({"email": form_data.username})
+    if student and verify_password(form_data.password, student["password"]):
+        user_data = {
+            "sub": student["email"],
+            "role": "student"
+        }
+        access_token = create_access_token(user_data)
         
-        # If not found in students, check experts
-        if not user:
-            user = db.experts.find_one({"email": form_data.username})
-            role = "expert"
-        
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
-            )
-        
-        # Verify password
-        if not verify_password(form_data.password, user["password"]):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect password"
-            )
-        
-        # Create access token
-        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        access_token = create_access_token(
-            data={"sub": user["email"], "role": role},
-            expires_delta=access_token_expires
-        )
-        
-        # Create refresh token
-        refresh_token = create_refresh_token(
-            data={"sub": user["email"], "role": role}
-        )
-        
-        # Set cookies
+        # Set cookie
         response.set_cookie(
             key="access_token",
             value=access_token,
             httponly=True,
-            max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            max_age=7 * 24 * 60 * 60,  # 7 days
+            path="/",
             samesite="lax",
-            secure=os.getenv("ENVIRONMENT") == "production"
-        )
-        
-        response.set_cookie(
-            key="refresh_token",
-            value=refresh_token,
-            httponly=True,
-            max_age=60 * 60 * 24 * 7,  # 7 days
-            samesite="lax",
-            secure=os.getenv("ENVIRONMENT") == "production"
+            secure=False  # Set to True in production with HTTPS
         )
         
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "role": role,
-            "is_verified": user.get("is_verified", False)
+            "role": "student",
+            "is_verified": student.get("is_verified", False)
         }
-    except HTTPException as e:
-        # Re-raise HTTP exceptions
-        raise
-    except Exception as e:
-        logger.error(f"Error during login: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred during login: {str(e)}"
+    
+    expert = db.experts.find_one({"email": form_data.username})
+    if expert and verify_password(form_data.password, expert["password"]):
+        user_data = {
+            "sub": expert["email"],
+            "role": "expert"
+        }
+        access_token = create_access_token(user_data)
+        
+        # Set cookie
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            max_age=7 * 24 * 60 * 60,  # 7 days
+            path="/",
+            samesite="lax",
+            secure=False  # Set to True in production with HTTPS
         )
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "role": "expert",
+            "is_verified": expert.get("is_verified", False)
+        }
+    
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Incorrect email or password",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 @router.post("/logout")
 async def logout(response: Response):
-    """
-    Logout user by clearing cookies
-    """
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
-    
-    return {"message": "Logged out successfully"}
+    response.delete_cookie(key="access_token", path="/")
+    return {"message": "Successfully logged out"}
 
 @router.post("/forgot-password")
 async def forgot_password(reset_data: PasswordReset):
@@ -555,16 +534,11 @@ async def refresh_token(
             detail=f"An error occurred during token refresh: {str(e)}"
         )
 
-@router.get("/me", response_model=dict)
-async def get_current_user_info(current_user: dict = Depends(get_current_user)):
-    """
-    Get current user information
-    """
-    try:
-        return current_user
-    except Exception as e:
-        logger.error(f"Error getting user info: {str(e)}")
+@router.get("/me")
+async def get_me(user = Depends(get_current_user_from_cookie)):
+    if not user:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred: {str(e)}"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
         )
+    return user

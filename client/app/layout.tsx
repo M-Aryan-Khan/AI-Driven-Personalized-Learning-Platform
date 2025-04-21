@@ -4,27 +4,30 @@ import { Inter } from 'next/font/google'
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from "@/contexts/auth-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Synapse - AI-Powered IT Learning Platform",
-  description: "Master any IT skill with personalized, AI-powered learning paths and expert guidance.",
+title: "Synapse - AI-Powered IT Learning Platform",
+description: "Master any IT skill with personalized, AI-powered learning paths and expert guidance.",
 }
 
 export default function RootLayout({
-  children,
+children,
 }: Readonly<{
-  children: React.ReactNode
+children: React.ReactNode
 }>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-vanilla-cream text-deep-cocoa`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+return (
+  <html lang="en" suppressHydrationWarning>
+    <body className={`${inter.className} bg-vanilla-cream text-deep-cocoa`}>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+        <AuthProvider>
           {children}
           <Toaster />
-        </ThemeProvider>
-      </body>
-    </html>
-  )
+        </AuthProvider>
+      </ThemeProvider>
+    </body>
+  </html>
+)
 }

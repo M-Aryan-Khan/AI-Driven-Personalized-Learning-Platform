@@ -22,7 +22,7 @@ logging.basicConfig(
 from app.routes.auth_routes import router as auth_router
 from app.routes.student_routes import router as student_router
 from app.routes.expert_routes import router as expert_router
-from app.routes.review_routes import router as review_router
+#from app.routes.review_routes import router as review_router
 
 # Create FastAPI app
 app = FastAPI(
@@ -48,7 +48,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(auth_router)
 app.include_router(student_router)
 app.include_router(expert_router)
-app.include_router(review_router)
+#app.include_router(review_router)
 
 @app.get("/")
 def root():
