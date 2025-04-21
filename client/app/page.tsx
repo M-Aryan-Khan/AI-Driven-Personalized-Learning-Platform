@@ -20,6 +20,7 @@ import heroImage from "./assets/hero-image.jpg";
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Logo from "@/app/assets/Logo.png";
 import image1 from "@/app/assets/mockImages/image1.png";
 import image2 from "@/app/assets/mockImages/image2.png";
 import image3 from "@/app/assets/mockImages/image3.png";
@@ -55,20 +56,11 @@ export default function Home() {
         transition={{ duration: 0.5 }}
       >
         <div className="flex items-center">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="relative w-8 h-8">
-              <motion.div
-                className="absolute w-8 h-8 bg-warm-coral rounded-lg transform rotate-45"
-                whileHover={{ rotate: 90 }}
-                transition={{ duration: 0.3 }}
-              ></motion.div>
-              <motion.div
-                className="absolute w-4 h-4 bg-soft-peach rounded-sm top-2 left-2"
-                whileHover={{ scale: 1.2 }}
-                transition={{ duration: 0.3 }}
-              ></motion.div>
+          <Link href="/" className="flex items-center gap-1 group">
+            <div className="relative w-12 h-12">
+              <Image src={Logo.src || "/placeholder.svg"} alt={"Logo"} fill className="object-cover" />
             </div>
-            <span className="text-deep-cocoa text-xl font-bold group-hover:text-warm-coral transition-colors">
+            <span className="text-[#3d2c2e] text-xl font-bold group-hover:text-[#ff8474] transition-colors">
               Synapse
             </span>
           </Link>
