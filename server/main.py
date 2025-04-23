@@ -4,9 +4,11 @@ from fastapi.staticfiles import StaticFiles
 import os
 from dotenv import load_dotenv
 import logging
+from starlette.middleware.sessions import SessionMiddleware
 
 # Load environment variables
-load_dotenv()
+load_dotenv(override=True)
+
 
 # Configure logging
 logging.basicConfig(
@@ -31,6 +33,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+app.add_middleware(
+    SessionMiddleware, 
+    secret_key=os.getenv("FASTAPI_SECRET_KEY"),
+    session_cookie="synapse_session",
+    max_age=3600,  # Session timeout in seconds
+    same_site="lax",  # Helps with CSRF protection
+    https_only=False,  # Set to True in production with HTTPS
+)
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -39,6 +50,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# app.add_middleware(SessionMiddleware, secret_key=os.getenv("FASTAPI_SECRET_KEY"))
 
 # Mount static files directory for profile images
 os.makedirs("static/profile-images", exist_ok=True)

@@ -40,7 +40,7 @@ class ExpertInDB(UserResponse):
     completed_sessions: Optional[int] = 0
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ExpertProfile(BaseModel):
     id: str
@@ -62,7 +62,7 @@ class ExpertProfile(BaseModel):
     completed_sessions: Optional[int] = 0
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ExpertSearchResult(BaseModel):
     id: str

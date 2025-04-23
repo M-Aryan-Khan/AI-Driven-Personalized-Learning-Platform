@@ -40,12 +40,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     // Show toast if user just verified their email
-    if (verified) {
-      toast({
-        title: "Email verified!",
-        description: "Your account has been successfully verified. You can now log in.",
-      })
-    }
+    // if (verified) {
+    //   toast({
+    //     title: "Email verified!",
+    //     description: "Your account has been successfully verified. You can now log in.",
+    //   })
+    // }
 
     // Show toast if user just reset their password
     if (reset) {

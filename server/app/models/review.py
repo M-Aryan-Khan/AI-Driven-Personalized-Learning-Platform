@@ -20,7 +20,7 @@ class ReviewInDB(ReviewCreate):
     created_at: datetime
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ReviewResponse(BaseModel):
     id: str
@@ -34,4 +34,4 @@ class ReviewResponse(BaseModel):
     created_at: datetime
     
     class Config:
-        orm_mode = True
+        from_attributes = True

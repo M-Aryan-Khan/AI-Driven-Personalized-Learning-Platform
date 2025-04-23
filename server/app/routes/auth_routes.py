@@ -6,6 +6,11 @@ from bson import ObjectId
 import os
 import logging
 import secrets
+import bcrypt
+import string
+import uuid
+import traceback
+import requests
 
 from ..models.user import UserCreate, Token, PasswordReset, VerifyEmail, ResetPassword, UserLogin
 from ..models.student import StudentCreate
@@ -25,19 +30,42 @@ from ..utils.email import (
 )
 from ..utils.auth import get_current_user, get_current_active_user, get_current_user_from_cookie
 from ..db.mongo import db
-import string
-
+from fastapi.responses import RedirectResponse, JSONResponse
+from authlib.integrations.starlette_client import OAuth
+from starlette.config import Config
+from starlette.middleware.sessions import SessionMiddleware
+from jose import jwt, ExpiredSignatureError, JWTError
+from dotenv import load_dotenv
 router = APIRouter(
     prefix="/api/auth",
     tags=["Authentication"],
 )
 
+
+config = Config('.env')
 # Environment variables
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
+
 # Setup logging
 logger = logging.getLogger(__name__)
+
+oauth = OAuth()
+oauth.register(
+    name="google",
+    client_id=os.getenv("GOOGLE_CLIENT_ID"),
+    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+    client_kwargs={"scope": "openid email profile"},
+    authorize_params={"access_type": "offline", "prompt": "consent"},
+    authorize_state=os.getenv("FASTAPI_SECRET_KEY"),
+    # Make sure this matches the route you're handling callbacks on
+    redirect_uri=os.getenv("REDIRECT_URL", "http://127.0.0.1:8000/api/auth"),
+)
+# JWT Configurations
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+ALGORITHM = "HS256"
 
 @router.post("/register/student", response_model=dict, status_code=status.HTTP_201_CREATED)
 async def register_student(student: UserCreate):
@@ -449,7 +477,12 @@ async def reset_password(reset_data: ResetPassword):
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Reset code expired"
                 )
-        
+    
+        if bcrypt.checkpw(reset_data.password.encode('utf-8'), user["password"].encode('utf-8')):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="New password must be different from the old password"
+        )
         # Update user with new password
         collection.update_one(
             {"_id": user["_id"]},
@@ -542,3 +575,104 @@ async def get_me(user = Depends(get_current_user_from_cookie)):
             detail="Not authenticated"
         )
     return user
+
+
+
+# @router.get('/google')
+# async def login_via_google(request: Request):
+#     redirect_uri = request.url_for('/api/auth')
+#     return await oauth.google.authorize_redirect(request, redirect_uri)
+
+
+@router.get("/login-google")
+async def login_via_google(request: Request):
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    redirect_path = "http://127.0.0.1:8000/api/auth"  # must match your redirect URI registered with Google
+    redirect_url = f"{request.base_url.scheme}://{request.base_url.hostname}:{request.base_url.port}{redirect_path}"
+    request.session["login_redirect"] = frontend_url 
+    
+    print("Session before redirect:", dict(request.session))
+    print("Redirect URL for Google auth:", redirect_url)
+
+    return await oauth.google.authorize_redirect(request, redirect_url)
+    # request.session.clear()
+    # frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    # redirect_url = os.getenv("REDIRECT_URL", "http://127.0.0.1:8000/api/auth")
+    # redirect_uri = request.url_for('/api/auth')
+
+# @router.get('/')
+# async def auth(request: Request):
+#     # Log the session after callback
+#     print("Session after callback:", dict(request.session))
+#     print("Request query params:", request.query_params)
+    
+#     try:
+#         token = await oauth.google.authorize_access_token(request)
+#          # Here you would typically:
+#         # 1. Check if the user exists in your database
+#         # 2. Create a user if they don't exist
+#         # 3. Generate a JWT token for your frontend
+#         # 4. Redirect to frontend with token
+        
+#     except Exception as e:
+#         print(f"Authentication error: {str(e)}")
+#         raise HTTPException(status_code=401, detail=f"Google authentication failed: {str(e)}")
+
+
+@router.route("/")
+async def auth(request: Request):
+    print("Session after callback:", dict(request.session))
+    print("Request query params:", request.query_params)
+    try:
+        # Change from auth_demo to google to match registration
+        token = await oauth.google.authorize_access_token(request)
+    except Exception as e:
+        print(f"Error getting access token: {str(e)}")
+        raise HTTPException(status_code=401, detail="Google authentication failed.")
+
+    try:
+        # Get user info directly from token response
+        user = token.get("userinfo")
+        
+        # If userinfo is not in token, fetch it
+        if not user:
+            user_info_endpoint = "https://www.googleapis.com/oauth2/v2/userinfo"
+            headers = {"Authorization": f'Bearer {token["access_token"]}'}
+            google_response = requests.get(user_info_endpoint, headers=headers)
+            user = google_response.json()
+            
+        user_id = user.get("sub")
+        user_email = user.get("email")
+        user_name = user.get("name")
+        user_pic = user.get("picture")
+        
+    except Exception as e:
+        print(f"Error fetching user info: {str(e)}")
+        raise HTTPException(status_code=401, detail="Failed to fetch user information.")
+    
+    # Validation
+    if not user_id or not user_email:
+        raise HTTPException(status_code=401, detail="Invalid user information from Google.")
+
+    # Create JWT token
+    expires_in = token.get("expires_in", ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+    access_token_expires = timedelta(seconds=expires_in)
+    access_token = create_access_token(data={"sub": user_id, "email": user_email}, expires_delta=access_token_expires)
+
+    session_id = str(uuid.uuid4())
+    # Your user logging logic here if needed
+    # log_user(user_id, user_email, user_name, user_pic, datetime.utcnow(), datetime.utcnow())
+    # log_token(access_token, user_email, session_id)
+
+    # Use stored redirect URL or default to frontend URL
+    redirect_url = request.session.pop("login_redirect", FRONTEND_URL)
+    response = RedirectResponse(redirect_url)
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,  # Set to True in production with HTTPS
+        samesite="lax",  # "strict" might cause issues with redirects
+    )
+
+    return response

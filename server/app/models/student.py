@@ -26,7 +26,7 @@ class StudentInDB(UserResponse):
     completed_sessions: Optional[int] = 0
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class StudentProfile(BaseModel):
     id: str
@@ -41,4 +41,4 @@ class StudentProfile(BaseModel):
     completed_sessions: Optional[int] = 0
     
     class Config:
-        orm_mode = True
+        from_attributes = True

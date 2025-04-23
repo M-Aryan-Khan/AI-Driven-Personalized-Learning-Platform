@@ -25,3 +25,244 @@
 2025-04-21 12:34:48,721 - app.db.mongo - INFO - Connected to MongoDB: synapseai
 2025-04-21 12:35:01,930 - app.db.mongo - INFO - Connected to MongoDB: synapseai
 2025-04-21 12:36:16,580 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-22 20:08:11,071 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-22 20:09:15,048 - app.utils.email - ERROR - Failed to send email to arhamaffan22@gmail.com: (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-3087df1e2acsm8781385a91.21 - gsmtp')
+2025-04-22 20:10:23,841 - app.utils.email - ERROR - Failed to send email to arhamaffan22@gmail.com: (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials 41be03b00d2f7-b0db1273edbsm7528194a12.8 - gsmtp')
+2025-04-22 20:10:37,055 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-22 20:13:29,823 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-22 20:15:32,691 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-22 20:20:41,419 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-22 20:22:09,781 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-22 20:32:09,616 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-22 20:33:09,320 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-23 00:38:24,886 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-23 00:39:03,604 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-23 00:42:01,890 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-23 00:42:22,679 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-23 00:43:44,164 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-23 00:44:00,886 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-23 00:52:38,369 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-23 08:09:09,733 - app.db.mongo - ERROR - Failed to connect to MongoDB: All nameservers failed to answer the query _mongodb._tcp.cluster0.fb5ubyw.mongodb.net. IN SRV: Server Do53:127.0.0.53@53 answered SERVFAIL
+2025-04-23 08:14:15,643 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 08:28:15,869 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-23 08:29:01,638 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-23 08:32:44,161 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 08:32:50,409 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 08:33:16,625 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 08:33:34,344 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 08:33:46,425 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 08:34:31,072 - app.utils.email - INFO - Email sent to arhamaffan22@gmail.com
+2025-04-23 12:39:38,910 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:41:44,255 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:41:51,838 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:42:00,194 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:42:17,127 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:42:24,017 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:42:43,242 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:43:30,851 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:44:56,192 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:45:04,561 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:46:51,269 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:47:00,695 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:47:15,797 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:53:28,948 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:53:35,255 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:54:24,824 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:54:37,110 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:54:54,626 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 12:55:09,615 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 13:30:54,587 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 13:31:05,922 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 13:31:16,988 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 13:31:29,024 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 13:36:04,065 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 14:08:22,323 - app.db.mongo - ERROR - Failed to connect to MongoDB: The resolution lifetime expired after 21.126 seconds: Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.
+2025-04-23 14:10:46,968 - app.db.mongo - ERROR - Failed to connect to MongoDB: The resolution lifetime expired after 21.121 seconds: Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.
+2025-04-23 14:11:11,096 - app.db.mongo - ERROR - Failed to connect to MongoDB: The resolution lifetime expired after 21.123 seconds: Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.
+2025-04-23 16:24:10,293 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:26:13,049 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:28:20,355 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:28:26,427 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:30:44,777 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:31:10,431 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:31:27,302 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:31:33,064 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:32:24,881 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:32:46,093 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:32:53,437 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:32:59,906 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:33:07,644 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:33:15,122 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:33:25,106 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:33:33,606 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:33:57,261 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:37:31,979 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:37:43,173 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:38:37,879 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:38:56,594 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:39:04,165 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:39:09,897 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:39:37,492 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:40:14,638 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:40:22,200 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:40:28,339 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:41:13,194 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:41:45,965 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:41:53,815 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:45:13,900 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:46:41,819 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:49:53,339 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 16:51:29,340 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:23:09,569 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:23:15,159 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:23:38,754 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:24:52,950 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:24:58,533 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:25:19,936 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:26:47,882 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:26:57,943 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:27:05,369 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:27:13,174 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:27:20,070 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:27:28,463 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:27:39,878 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:28:03,280 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:31:11,101 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:31:16,735 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:32:24,840 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:32:31,209 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:33:01,502 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:34:22,610 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:34:28,041 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:34:47,098 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:35:00,196 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:35:05,928 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:35:52,370 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:36:38,614 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:36:54,494 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:37:03,189 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:37:09,134 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:37:17,732 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:44:55,404 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:45:16,294 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:45:34,692 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:45:40,465 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:46:35,113 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:46:43,497 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:47:04,849 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:47:11,102 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:47:36,999 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:48:23,706 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:50:35,634 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 18:53:49,766 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:53:56,130 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:54:02,279 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:54:07,956 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:54:24,997 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:54:30,746 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:55:40,078 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:56:20,893 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:56:28,063 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:56:34,256 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:56:50,567 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:56:55,963 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 18:58:38,481 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 19:00:22,652 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:00:28,465 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:01:35,246 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:01:54,648 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:02:22,551 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:02:28,799 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:02:35,151 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 19:03:59,943 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:04:14,997 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:04:21,091 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:04:27,392 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:05:30,068 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 19:07:43,506 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:36:15,263 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 19:42:01,005 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:42:14,832 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 19:50:02,587 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:50:12,732 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:50:30,195 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:50:59,631 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:52:32,058 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:52:52,746 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:52:58,582 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:55:04,446 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:55:21,876 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:55:33,280 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:55:41,622 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:55:53,662 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:56:00,466 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:56:08,556 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:56:16,953 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:59:01,689 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:59:07,265 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 19:59:47,729 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 20:00:57,659 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:01:15,277 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:01:31,863 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:01:37,802 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:01:43,437 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 20:03:33,732 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:04:24,527 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:04:30,160 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:05:03,189 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:05:09,382 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:05:20,203 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:07:08,798 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 20:11:54,621 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:12:00,405 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:12:25,451 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 20:31:58,356 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:32:14,451 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:32:53,757 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:33:35,443 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:33:41,019 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 20:37:57,920 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 22:43:24,615 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 22:43:31,080 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 22:43:39,476 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 22:43:56,064 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 22:44:02,774 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 22:45:12,971 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 22:46:02,619 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 22:47:09,517 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 22:47:15,418 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 22:48:29,095 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 22:50:16,577 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 22:50:36,292 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 22:55:15,784 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 22:57:17,007 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 23:02:42,556 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:03:07,629 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:04:19,370 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 23:09:35,877 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:09:43,917 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:12:51,432 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:13:25,035 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:13:52,444 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:14:12,301 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 23:15:29,307 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:16:11,821 - app.db.mongo - ERROR - Failed to connect to MongoDB: No replica set members match selector "Primary()", Timeout: 30s, Topology Description: <TopologyDescription id: 68092e4db1e8a346093cb986, topology_type: ReplicaSetNoPrimary, servers: [<ServerDescription ('ac-mhetalb-shard-00-00.fb5ubyw.mongodb.net', 27017) server_type: RSSecondary, rtt: 19.53308969900536>, <ServerDescription ('ac-mhetalb-shard-00-01.fb5ubyw.mongodb.net', 27017) server_type: Unknown, rtt: None, error=NetworkTimeout('SSL handshake failed: ac-mhetalb-shard-00-01.fb5ubyw.mongodb.net:27017: _ssl.c:983: The handshake operation timed out (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>, <ServerDescription ('ac-mhetalb-shard-00-02.fb5ubyw.mongodb.net', 27017) server_type: RSSecondary, rtt: 1.3851259220027714>]>
+2025-04-23 23:19:48,817 - app.db.mongo - ERROR - Failed to connect to MongoDB: The resolution lifetime expired after 21.121 seconds: Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.; Server Do53:127.0.0.53@53 answered The DNS operation timed out.
+2025-04-23 23:20:19,926 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:24:24,350 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 23:25:51,674 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:25:58,219 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:26:11,526 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 23:34:50,650 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:36:28,468 - httpx - INFO - HTTP Request: GET https://accounts.google.com/.well-known/openid-configuration "HTTP/1.1 200 OK"
+2025-04-23 23:38:20,904 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:38:32,355 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:40:00,656 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:42:03,933 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:42:14,743 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:42:25,191 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:42:30,827 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:42:53,036 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:43:03,169 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:43:14,428 - app.db.mongo - INFO - Connected to MongoDB: synapseai
+2025-04-23 23:43:23,115 - app.db.mongo - INFO - Connected to MongoDB: synapseai

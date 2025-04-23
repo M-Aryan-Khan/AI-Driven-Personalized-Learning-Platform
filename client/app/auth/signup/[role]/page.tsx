@@ -53,11 +53,11 @@ export default function SignupPage() {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Validate if we're on a valid role page
-  useEffect(() => {
-    if (role !== "teach" && role !== "student") {
-      router.push("/auth/signup/student");
-    }
-  }, [role, router]);
+  // useEffect(() => {
+  //   if (role !== "teach" && role !== "student") {
+  //     router.push("/auth/signup/student");
+  //   }
+  // }, [role, router]);
 
   const isTeacher = role === "teach";
 
@@ -345,26 +345,23 @@ export default function SignupPage() {
     }
   };
 
-  const handleSocialSignup = async (provider: string) => {
+  // const handleSocialSignup = async (provider: string) => {
+  // setIsSubmitting(true);
+const handleSocialSignup = (provider: "google") => {
+  try {
     setIsSubmitting(true);
+    // Use the correct backend URL from environment if possible
+    window.location.href = "http://127.0.0.1:8000/api/auth/login-google";
+  } catch (error) {
+    console.error(`${provider} signup error:`, error);
+    setErrors({
+      form: `An error occurred during ${provider} signup. Please try again.`,
+    });
+    setIsSubmitting(false);
+  }
+};
 
-    try {
-      // In a real implementation, you would redirect to OAuth provider
-      // For now, we'll just show a toast message
-      toast({
-        title: "Social signup not implemented",
-        description: `${provider} signup will be available soon.`,
-      });
-
-      setIsSubmitting(false);
-    } catch (error) {
-      console.error(`${provider} signup error:`, error);
-      setErrors({
-        form: `An error occurred during ${provider} signup. Please try again.`,
-      });
-      setIsSubmitting(false);
-    }
-  };
+  
 
   const nextStep = () => {
     if (step === 1) {
@@ -803,7 +800,7 @@ export default function SignupPage() {
 
                   <motion.button
                     type="button"
-                    onClick={() => handleSocialSignup("facebook")}
+                    // onClick={() => handleSocialSignup("facebook")}
                     disabled={isSubmitting}
                     className="cursor-pointer flex items-center justify-center gap-2 bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold py-3 px-4 rounded-lg"
                     whileHover={{ scale: 1.01 }}
@@ -815,7 +812,7 @@ export default function SignupPage() {
 
                   <motion.button
                     type="button"
-                    onClick={() => handleSocialSignup("apple")}
+                    // onClick={() => handleSocialSignup("apple")}
                     disabled={isSubmitting}
                     className="cursor-pointer flex items-center justify-center gap-2 bg-black hover:bg-gray-900 text-white font-semibold py-3 px-4 rounded-lg"
                     whileHover={{ scale: 1.01 }}
