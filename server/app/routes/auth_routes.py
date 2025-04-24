@@ -577,28 +577,18 @@ async def get_me(user = Depends(get_current_user_from_cookie)):
     return user
 
 
-
-# @router.get('/google')
-# async def login_via_google(request: Request):
-#     redirect_uri = request.url_for('/api/auth')
-#     return await oauth.google.authorize_redirect(request, redirect_uri)
-
-
 @router.get("/login-google")
 async def login_via_google(request: Request):
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-    redirect_path = "http://127.0.0.1:8000/api/auth"  # must match your redirect URI registered with Google
-    redirect_url = f"{request.base_url.scheme}://{request.base_url.hostname}:{request.base_url.port}{redirect_path}"
+    # request.session.clear()
+    frontend_url = os.getenv("FRONTEND_URL", "http://127.0.0.1:3000")
+    redirect_url = os.getenv("REDIRECT_URL", "http://127.0.0.1:8000/api/auth")
     request.session["login_redirect"] = frontend_url 
     
+    # Log the session before redirect
     print("Session before redirect:", dict(request.session))
-    print("Redirect URL for Google auth:", redirect_url)
-
+    print("redirect_url:", redirect_url)
+    
     return await oauth.google.authorize_redirect(request, redirect_url)
-    # request.session.clear()
-    # frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-    # redirect_url = os.getenv("REDIRECT_URL", "http://127.0.0.1:8000/api/auth")
-    # redirect_uri = request.url_for('/api/auth')
 
 # @router.get('/')
 # async def auth(request: Request):
@@ -619,13 +609,16 @@ async def login_via_google(request: Request):
 #         raise HTTPException(status_code=401, detail=f"Google authentication failed: {str(e)}")
 
 
-@router.route("/")
+@router.get("/")
 async def auth(request: Request):
+    print("HERE IN AUTH")
     print("Session after callback:", dict(request.session))
     print("Request query params:", request.query_params)
+
     try:
         # Change from auth_demo to google to match registration
         token = await oauth.google.authorize_access_token(request)
+        print("TOKEN: ", token)
     except Exception as e:
         print(f"Error getting access token: {str(e)}")
         raise HTTPException(status_code=401, detail="Google authentication failed.")
@@ -665,14 +658,17 @@ async def auth(request: Request):
     # log_token(access_token, user_email, session_id)
 
     # Use stored redirect URL or default to frontend URL
-    redirect_url = request.session.pop("login_redirect", FRONTEND_URL)
+    # redirect_url = request.session.pop("login_redirect", FRONTEND_URL)
+    # redirect_url = f"http://{os.getenv('BACKEND_HOST')}:{os.getenv('BACKEND_PORT')}/api/auth"
+    redirect_url = "http://127.0.0.1:3000"
     response = RedirectResponse(redirect_url)
     response.set_cookie(
-        key="access_token",
-        value=access_token,
+        "access_token",
+        access_token,
         httponly=True,
-        secure=False,  # Set to True in production with HTTPS
-        samesite="lax",  # "strict" might cause issues with redirects
+        secure=False,
+        samesite="lax",
+        domain="http://127.0.0.1:8000"            # ← explicitly set domain
     )
 
     return response
