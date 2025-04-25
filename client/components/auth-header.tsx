@@ -3,27 +3,22 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
+import Logo from "@/app/assets/Logo.png";
+import Image from "next/image";
 
 export default function AuthHeader() {
   return (
     <header className="container mx-auto py-4 px-4 md:px-6 flex items-center justify-between">
-      <Link href="/" className="flex items-center gap-2 group">
-        <div className="relative w-8 h-8">
-          <motion.div
-            className="absolute w-8 h-8 bg-warm-coral rounded-lg transform rotate-45"
-            whileHover={{ rotate: 90 }}
-            transition={{ duration: 0.3 }}
-          ></motion.div>
-          <motion.div
-            className="absolute w-4 h-4 bg-soft-peach rounded-sm top-2 left-2"
-            whileHover={{ scale: 1.2 }}
-            transition={{ duration: 0.3 }}
-          ></motion.div>
+      <div className="flex items-center">
+          <Link href="/" className="flex items-center gap-1 group">
+            <div className="relative w-12 h-12">
+              <Image src={Logo.src || "/placeholder.svg"} alt={"Logo"} fill className="object-cover" />
+            </div>
+            <span className="text-[#3d2c2e] text-xl font-bold group-hover:text-[#ff8474] transition-colors">
+              Synapse
+            </span>
+          </Link>
         </div>
-        <span className="text-deep-cocoa text-xl font-bold group-hover:text-warm-coral transition-colors">
-          Synapse
-        </span>
-      </Link>
 
       <Link
         href="/"

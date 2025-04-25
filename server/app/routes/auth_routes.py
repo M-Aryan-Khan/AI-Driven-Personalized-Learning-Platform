@@ -660,7 +660,7 @@ async def auth(request: Request):
     # Use stored redirect URL or default to frontend URL
     # redirect_url = request.session.pop("login_redirect", FRONTEND_URL)
     # redirect_url = f"http://{os.getenv('BACKEND_HOST')}:{os.getenv('BACKEND_PORT')}/api/auth"
-    redirect_url = "http://127.0.0.1:3000"
+    redirect_url = "http://localhost:3000/auth/login"
     response = RedirectResponse(redirect_url)
     response.set_cookie(
         "access_token",
