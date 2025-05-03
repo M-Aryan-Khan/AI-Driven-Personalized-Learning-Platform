@@ -4,9 +4,11 @@ from datetime import datetime, timezone
 from bson import ObjectId
 
 from ..models.student import StudentUpdate, StudentProfile
-from ..models.expert import ExpertSearchResult
-from ..models.session import SessionCreate, SessionResponse
+from ..models.expert import ExpertSearchResult, ExpertProfile
+from ..models.session import SessionCreate, SessionResponse, SessionUpdate
+from ..models.message import MessageCreate, MessageResponse, ConversationResponse
 from ..utils.auth import get_current_active_user, require_role
+from ..utils.email import send_session_confirmation_email
 from ..db.mongo import db
 
 router = APIRouter(
@@ -145,7 +147,7 @@ async def search_experts(
     
     return experts
 
-@router.get("/experts/{expert_id}", response_model=ExpertSearchResult)
+@router.get("/experts/{expert_id}", response_model=ExpertProfile)
 async def get_expert_details(
     expert_id: str,
     current_user: dict = Depends(require_role("student"))
@@ -208,9 +210,20 @@ async def book_session(
         "topic": session.topic
     }
     
-    # In a real implementation, you would send confirmation emails to both the student and expert
-    # send_session_confirmation_email(student["email"], f"{student['first_name']} {student['last_name']}", session_details)
-    # send_session_confirmation_email(expert["email"], f"{expert['first_name']} {expert['last_name']}", session_details)
+    # Send confirmation emails to both the student and expert
+    if student and "email" in student and "first_name" in student and "last_name" in student:
+        send_session_confirmation_email(
+            student["email"], 
+            f"{student['first_name']} {student['last_name']}", 
+            session_details
+        )
+    
+    if "email" in expert and "first_name" in expert and "last_name" in expert:
+        send_session_confirmation_email(
+            expert["email"], 
+            f"{expert['first_name']} {expert['last_name']}", 
+            session_details
+        )
     
     return {
         "message": "Session booked successfully",
@@ -291,6 +304,100 @@ async def get_session_details(
     
     return session
 
+@router.post("/sessions/{session_id}/cancel", response_model=dict)
+async def cancel_session(
+    session_id: str,
+    current_user: dict = Depends(require_role("student"))
+):
+    """
+    Cancel a session
+    """
+    session = db.sessions.find_one({"_id": ObjectId(session_id)})
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found"
+        )
+    
+    # Verify student has access to this session
+    if session["student_id"] != current_user["id"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have access to this session"
+        )
+    
+    # Update session status
+    db.sessions.update_one(
+        {"_id": ObjectId(session_id)},
+        {
+            "$set": {
+                "status": "cancelled",
+                "updated_at": datetime.now(timezone.utc)
+            }
+        }
+    )
+    
+    return {"message": "Session cancelled successfully"}
+
+@router.put("/sessions/{session_id}", response_model=SessionResponse)
+async def update_session(
+    session_id: str,
+    session_update: SessionUpdate,
+    current_user: dict = Depends(require_role("student"))
+):
+    """
+    Update a session
+    """
+    session = db.sessions.find_one({"_id": ObjectId(session_id)})
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found"
+        )
+    
+    # Verify student has access to this session
+    if session["student_id"] != current_user["id"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have access to this session"
+        )
+    
+    # Filter out None values
+    update_data = {k: v for k, v in session_update.dict().items() if v is not None}
+    
+    if not update_data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No data to update"
+        )
+    
+    # Add updated_at timestamp
+    update_data["updated_at"] = datetime.now(timezone.utc)
+    
+    # Update session
+    db.sessions.update_one(
+        {"_id": ObjectId(session_id)},
+        {"$set": update_data}
+    )
+    
+    # Get updated session
+    updated_session = db.sessions.find_one({"_id": ObjectId(session_id)})
+    updated_session["id"] = str(updated_session["_id"])
+    
+    # Get expert info
+    expert = db.experts.find_one({"_id": ObjectId(updated_session["expert_id"])})
+    if expert:
+        updated_session["expert_name"] = f"{expert['first_name']} {expert['last_name']}"
+        updated_session["expert_profile_image"] = expert.get("profile_image")
+    
+    # Get student info
+    student = db.students.find_one({"_id": ObjectId(updated_session["student_id"])})
+    if student:
+        updated_session["student_name"] = f"{student['first_name']} {student['last_name']}"
+        updated_session["student_profile_image"] = student.get("profile_image")
+    
+    return updated_session
+
 @router.post("/bookmark/{expert_id}", response_model=dict)
 async def bookmark_expert(
     expert_id: str,
@@ -360,3 +467,199 @@ async def get_bookmarked_experts(
         expert["id"] = str(expert["_id"])
     
     return experts
+
+@router.get("/conversations", response_model=List[ConversationResponse])
+async def get_conversations(
+    current_user: dict = Depends(require_role("student"))
+):
+    """
+    Get all conversations for the current student
+    """
+    # Find conversations where the student is a participant
+    conversations = list(db.conversations.find({
+        "participants": current_user["id"]
+    }).sort("last_message_date", -1))
+    
+    result = []
+    for conversation in conversations:
+        # Get the other participant (expert)
+        expert_id = next((p for p in conversation["participants"] if p != current_user["id"]), None)
+        if not expert_id:
+            continue
+        
+        # Get expert details
+        expert = db.experts.find_one({"_id": ObjectId(expert_id)})
+        if not expert:
+            continue
+        
+        # Get the last message
+        last_message = db.messages.find_one(
+            {"conversation_id": str(conversation["_id"])},
+            sort=[("timestamp", -1)]
+        )
+        
+        if not last_message:
+            continue
+        
+        # Check if there are unread messages for the student
+        unread_count = db.messages.count_documents({
+            "conversation_id": str(conversation["_id"]),
+            "sender_id": expert_id,
+            "read": False
+        })
+        
+        result.append({
+            "id": str(conversation["_id"]),
+            "expert_id": expert_id,
+            "expert_name": f"{expert['first_name']} {expert['last_name']}",
+            "expert_profile_image": expert.get("profile_image"),
+            "last_message": last_message["content"],
+            "last_message_date": last_message["timestamp"],
+            "unread": unread_count > 0
+        })
+    
+    return result
+
+@router.get("/conversations/{expert_id}", response_model=List[MessageResponse])
+async def get_conversation_messages(
+    expert_id: str,
+    current_user: dict = Depends(require_role("student"))
+):
+    """
+    Get messages for a conversation with an expert
+    """
+    # Find or create conversation
+    conversation = db.conversations.find_one({
+        "participants": {"$all": [current_user["id"], expert_id]}
+    })
+    
+    if not conversation:
+        # Create a new conversation
+        conversation_id = str(ObjectId())
+        db.conversations.insert_one({
+            "_id": ObjectId(conversation_id),
+            "participants": [current_user["id"], expert_id],
+            "created_at": datetime.now(timezone.utc),
+            "last_message_date": datetime.now(timezone.utc)
+        })
+        return []
+    
+    # Get messages
+    messages = list(db.messages.find({
+        "conversation_id": str(conversation["_id"])
+    }).sort("timestamp", 1))
+    
+    # Mark messages from expert as read
+    db.messages.update_many(
+        {
+            "conversation_id": str(conversation["_id"]),
+            "sender_id": expert_id,
+            "read": False
+        },
+        {"$set": {"read": True}}
+    )
+    
+    # Convert ObjectId to string
+    for message in messages:
+        message["id"] = str(message["_id"])
+    
+    return messages
+
+@router.post("/conversations/{expert_id}/messages", response_model=MessageResponse)
+async def send_message(
+    expert_id: str,
+    message: MessageCreate,
+    current_user: dict = Depends(require_role("student"))
+):
+    """
+    Send a message to an expert
+    """
+    # Verify expert exists
+    expert = db.experts.find_one({"_id": ObjectId(expert_id)})
+    if not expert:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Expert not found"
+        )
+    
+    # Find or create conversation
+    conversation = db.conversations.find_one({
+        "participants": {"$all": [current_user["id"], expert_id]}
+    })
+    
+    if not conversation:
+        # Create a new conversation
+        conversation_id = str(ObjectId())
+        db.conversations.insert_one({
+            "_id": ObjectId(conversation_id),
+            "participants": [current_user["id"], expert_id],
+            "created_at": datetime.now(timezone.utc),
+            "last_message_date": datetime.now(timezone.utc)
+        })
+    else:
+        conversation_id = str(conversation["_id"])
+        # Update last message date
+        db.conversations.update_one(
+            {"_id": conversation["_id"]},
+            {"$set": {"last_message_date": datetime.now(timezone.utc)}}
+        )
+    
+    # Get student info
+    student = db.students.find_one({"_id": ObjectId(current_user["id"])})
+    
+    # Create message
+    message_data = {
+        "conversation_id": conversation_id,
+        "sender_id": current_user["id"],
+        "sender_name": f"{student['first_name']} {student['last_name']}",
+        "sender_role": "student",
+        "content": message.content,
+        "timestamp": datetime.now(timezone.utc),
+        "read": False
+    }
+    
+    # Insert message
+    result = db.messages.insert_one(message_data)
+    
+    # Return created message
+    created_message = {
+        "id": str(result.inserted_id),
+        **message_data
+    }
+    
+    return created_message
+
+@router.post("/change-password", response_model=dict)
+async def change_password(
+    current_password: str,
+    new_password: str,
+    current_user: dict = Depends(require_role("student"))
+):
+    """
+    Change student password
+    """
+    from ..utils.hash import verify_password, get_password_hash
+    
+    # Get student
+    student = db.students.find_one({"_id": ObjectId(current_user["id"])})
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found"
+        )
+    
+    # Verify current password
+    if not verify_password(current_password, student["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect password"
+        )
+    
+    # Update password
+    hashed_password = get_password_hash(new_password)
+    db.students.update_one(
+        {"_id": ObjectId(current_user["id"])},
+        {"$set": {"hashed_password": hashed_password}}
+    )
+    
+    return {"message": "Password updated successfully"}

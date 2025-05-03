@@ -126,7 +126,7 @@ export default function LoginPage() {
         })
 
         // Redirect to dashboard based on role
-        router.push(data.role === "expert" ? "/teach/dashboard" : "/student/dashboard")
+        router.push(data.role === "expert" ? "/dashboard/teach" : "/dashboard/student")
       } catch (error: any) {
         console.error("Login error:", error)
 

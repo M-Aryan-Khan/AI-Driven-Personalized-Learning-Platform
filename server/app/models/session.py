@@ -9,11 +9,17 @@ class SessionCreate(BaseModel):
     duration: int  # in minutes
     topic: str
     description: Optional[str] = None
+    notes: Optional[str] = None
 
 class SessionUpdate(BaseModel):
     status: Optional[str] = None  # scheduled, completed, cancelled
     notes: Optional[str] = None
     recording_url: Optional[str] = None
+    meeting_link: Optional[str] = None
+    date: Optional[datetime] = None
+    duration: Optional[int] = None
+    topic: Optional[str] = None
+    description: Optional[str] = None
 
 class SessionInDB(BaseModel):
     id: str
@@ -26,6 +32,7 @@ class SessionInDB(BaseModel):
     status: str = "scheduled"  # scheduled, completed, cancelled
     notes: Optional[str] = None
     recording_url: Optional[str] = None
+    meeting_link: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     

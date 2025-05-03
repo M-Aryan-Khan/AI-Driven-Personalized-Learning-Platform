@@ -672,3 +672,41 @@ async def auth(request: Request):
     )
 
     return response
+
+@router.post("/change-password", response_model=dict)
+async def change_password(
+    current_password: str,
+    new_password: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Change user password
+    """
+    # Determine collection
+    collection = db.students if current_user["role"] == "student" else db.experts
+    
+    # Get user
+    user = collection.find_one({"_id": ObjectId(current_user["id"])})
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Verify current password
+    if not verify_password(current_password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect password"
+        )
+    
+    # Hash new password
+    hashed_password = hash_password(new_password)
+    
+    # Update user
+    collection.update_one(
+        {"_id": ObjectId(current_user["id"])},
+        {"$set": {"password": hashed_password}}
+    )
+    
+    return {"message": "Password changed successfully"}

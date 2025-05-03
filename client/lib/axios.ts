@@ -1,18 +1,22 @@
 import axios from "axios"
 
-// Create an Axios instance with default config
-const api = axios.create({
+// Create a custom axios instance
+const instance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // Important for cookies
+  withCredentials: true, // Important for cookies/auth
 })
 
-// Add a request interceptor for authentication
-api.interceptors.request.use(
+// Add a request interceptor to include auth token
+instance.interceptors.request.use(
   (config) => {
-    // You can add auth token here if needed
+    // You can add logic here to get token from localStorage or cookies if needed
+    const token = localStorage.getItem("token")
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
     return config
   },
   (error) => {
@@ -20,32 +24,25 @@ api.interceptors.request.use(
   },
 )
 
-// Add a response interceptor for error handling
-api.interceptors.response.use(
+// Add a response interceptor to handle errors
+instance.interceptors.response.use(
   (response) => {
     return response
   },
   (error) => {
-    // Handle specific error cases
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      console.error("Response error:", error.response.status, error.response.data)
-
-      // Extract more detailed error message if available
-      if (error.response.data && error.response.data.detail) {
-        error.message = error.response.data.detail
-      }
-    } else if (error.request) {
-      // The request was made but no response was received
-      console.error("Request error:", error.request)
-      error.message = "No response received from server. Please check your connection."
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      console.error("Error:", error.message)
+    // Handle 401 Unauthorized errors
+    if (error.response && error.response.status === 401) {
+      // Redirect to login or refresh token
+      console.log("Unauthorized, redirecting to login")
+      // You can add redirect logic here
     }
+
+    // Log the error but don't show it to the user
+    console.error("API Error:", error.message)
+
+    // Return a rejected promise but don't show error messages in the UI
     return Promise.reject(error)
   },
 )
 
-export default api
+export default instance
