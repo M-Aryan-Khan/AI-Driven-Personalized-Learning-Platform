@@ -5,6 +5,7 @@ __pycache__/
 venv/
 .env
 .env.*
+/server/app.log
 
 # ========== NODE (client) ==========
 node_modules/

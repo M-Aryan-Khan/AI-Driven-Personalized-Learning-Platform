@@ -31,43 +31,44 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Get the API URL from environment variable or use default
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
-  // Mock user for development
-  const mockUser: User = {
-    id: "1",
-    email: "student@example.com",
-    role: "student",
-    is_verified: true,
-    first_name: "Student",
-    last_name: "User",
-    profile_image: "",
-    bio: "I'm a student looking to learn new skills",
-    time_zone: "America/New_York",
-    learning_goals: ["Programming", "Design", "Marketing"],
-    preferred_languages: ["English", "Spanish"],
-  }
-
   useEffect(() => {
     // Check if user is logged in
     const checkAuth = async () => {
       try {
-        // For development, use mock user
-        setUser(mockUser)
+        const token = localStorage.getItem("token")
 
-        // In production, uncomment this to use real API
-        // const response = await axios.get("/api/auth/me")
-        // setUser(response.data)
+        if (!token) {
+          setUser(null)
+          setLoading(false)
+          return
+        }
 
-        // Store token in localStorage for development
-        if (!localStorage.getItem("token")) {
-          localStorage.setItem("token", "mock-token-for-development")
+        // Fetch user data from backend using the full URL
+        const response = await axios.get(`${API_URL}/api/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (response.data) {
+          setUser(response.data)
+        } else {
+          // Clear invalid token
+          localStorage.removeItem("token")
+          setUser(null)
         }
       } catch (error) {
         console.error("Auth error:", error)
+        // Clear invalid token
+        localStorage.removeItem("token")
         setUser(null)
       } finally {
         setLoading(false)
@@ -79,53 +80,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      // For development, use mock user
-      if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
-        setUser(mockUser)
-        localStorage.setItem("token", "mock-token-for-development")
-        return
-      }
+      console.log("Attempting login with email:", email)
 
-      // In production or when using real API
-      const response = await axios.post(
-        "/api/auth/login",
-        {
-          username: email,
-          password: password,
+      // Create URLSearchParams for x-www-form-urlencoded format
+      const params = new URLSearchParams()
+      params.append("username", email)
+      params.append("password", password)
+
+      console.log("Sending login request to:", `${API_URL}/api/auth/login`)
+
+      // Use the full URL to the backend API
+      const response = await axios.post(`${API_URL}/api/auth/login`, params, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        },
-      )
+      })
+
+      console.log("Login response:", response.data)
 
       // Store token in localStorage
       if (response.data.access_token) {
         localStorage.setItem("token", response.data.access_token)
-      }
 
-      // Fetch user data
-      await refreshUser()
-    } catch (error) {
+        // Fetch user data
+        await refreshUser()
+
+        // Redirect based on role and verification status
+        if (user?.role === "student") {
+          if (!user.is_verified) {
+            router.push("/auth/verification-pending")
+          } else {
+            router.push("/dashboard/student")
+          }
+        } else if (user?.role === "expert") {
+          if (!user.is_verified) {
+            router.push("/auth/verification-pending")
+          } else {
+            router.push("/dashboard/expert")
+          }
+        }
+      } else {
+        throw new Error("No access token received")
+      }
+    } catch (error: any) {
       console.error("Login error:", error)
+      console.error("Error response:", error.response?.data)
       throw error
     }
   }
 
   const signup = async (data: any) => {
     try {
-      // For development, use mock user
-      if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
-        setUser(mockUser)
-        localStorage.setItem("token", "mock-token-for-development")
-        return
-      }
-
-      // In production, use real API
-      const response = await axios.post("/api/auth/register/" + data.role, data)
-
-      // Don't return anything to match the Promise<void> type
+      // Use the full URL to the backend API
+      await axios.post(`${API_URL}/api/auth/register/${data.role}`, data)
+      // Don't automatically log in after signup - require email verification
     } catch (error) {
       console.error("Signup error:", error)
       throw error
@@ -134,41 +142,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      // For development
-      setUser(null)
+      const token = localStorage.getItem("token")
+
+      if (token) {
+        // Call logout endpoint with full URL
+        await axios.post(
+          `${API_URL}/api/auth/logout`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+      }
+
+      // Clear local storage and state regardless of API response
       localStorage.removeItem("token")
-
-      // In production, uncomment this to use real API
-      // await axios.post("/api/auth/logout")
-
+      setUser(null)
       router.push("/")
     } catch (error) {
       console.error("Logout error:", error)
+      // Still clear token and user state even if API call fails
+      localStorage.removeItem("token")
+      setUser(null)
+      router.push("/")
     }
   }
 
   const refreshUser = async () => {
     setLoading(true)
     try {
-      // For development, use mock user
-      if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
-        setUser(mockUser)
+      const token = localStorage.getItem("token")
+
+      if (!token) {
+        setUser(null)
         setLoading(false)
         return
       }
 
-      // In production or when using real API
-      const response = await axios.get("/api/auth/me", {
-        withCredentials: true, // Important to send cookies
+      // Use the full URL to the backend API
+      const response = await axios.get(`${API_URL}/api/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
 
       if (response.data) {
         setUser(response.data)
       } else {
+        localStorage.removeItem("token")
         setUser(null)
       }
     } catch (error) {
       console.error("Error refreshing user:", error)
+      localStorage.removeItem("token")
       setUser(null)
     } finally {
       setLoading(false)

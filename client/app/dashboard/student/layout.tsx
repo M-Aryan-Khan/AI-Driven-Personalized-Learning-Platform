@@ -1,36 +1,14 @@
 "use client"
 
+import type React from "react"
+
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { Toaster } from "@/components/ui/toaster"
 import StudentNavbar from "@/components/dashboard/student/student-navbar"
-import { Home, MessageSquare, BookOpen, Settings, Heart } from 'lucide-react'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupAction,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarInput,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuAction,
-  SidebarMenuBadge,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSkeleton,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarProvider,
-  SidebarRail,
-  SidebarSeparator,
-  SidebarTrigger
-} from "@/components/ui/sidebar"
+import { Home, MessageSquare, BookOpen, Settings, Heart } from "lucide-react"
+import { Sidebar } from "@/components/ui/sidebar"
 
 export default function StudentDashboardLayout({
   children,
@@ -41,8 +19,18 @@ export default function StudentDashboardLayout({
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== "student")) {
-      router.push("/auth/login")
+    if (!loading) {
+      if (!user) {
+        // No user is logged in, redirect to login
+        router.push("/auth/login")
+      } else if (user.role !== "student") {
+        // User is logged in but not a student, redirect to appropriate dashboard or login
+        if (user.role === "expert") {
+          router.push("/dashboard/expert")
+        } else {
+          router.push("/auth/login")
+        }
+      }
     }
   }, [user, loading, router])
 

@@ -12,8 +12,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import AuthHeader from "@/components/auth-header"
-import { toast } from "@/hooks/use-toast"
-import api from "@/lib/axios"
+import { useAuth } from "@/contexts/auth-context"
+import { useToast } from "@/hooks/use-toast"
 import image1 from "@/app/assets/mockImages/image1.png"
 import image2 from "@/app/assets/mockImages/image2.png"
 import image3 from "@/app/assets/mockImages/image3.png"
@@ -26,26 +26,38 @@ export default function LoginPage() {
   const role = searchParams.get("role") || "student"
   const verified = searchParams.get("verified") === "true"
   const reset = searchParams.get("reset") === "success"
-  const email = searchParams.get("email") || ""
+  const emailParam = searchParams.get("email") || ""
 
-  const [formData, setFormData] = useState({
-    email: email,
-    password: "",
-    rememberMe: false,
-  })
-
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [email, setEmail] = useState(emailParam)
+  const [password, setPassword] = useState("")
+  const [rememberMe, setRememberMe] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  const { login, user, loading } = useAuth()
+  const { toast } = useToast()
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      if (user.role === "student") {
+        router.push("/dashboard/student")
+      } else if (user.role === "expert") {
+        router.push("/dashboard/expert")
+      }
+    }
+  }, [user, loading, router])
 
   useEffect(() => {
     // Show toast if user just verified their email
-    // if (verified) {
-    //   toast({
-    //     title: "Email verified!",
-    //     description: "Your account has been successfully verified. You can now log in.",
-    //   })
-    // }
+    if (verified) {
+      toast({
+        title: "Email verified!",
+        description: "Your account has been successfully verified. You can now log in.",
+      })
+    }
 
     // Show toast if user just reset their password
     if (reset) {
@@ -54,36 +66,20 @@ export default function LoginPage() {
         description: "Your password has been reset. You can now log in with your new password.",
       })
     }
-  }, [verified, reset])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    })
-
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: "",
-      })
-    }
-  }
+  }, [verified, reset, toast])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
     // Email validation
-    if (!formData.email.trim()) {
+    if (!email.trim()) {
       newErrors.email = "Email is required"
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = "Email is invalid"
     }
 
     // Password validation
-    if (!formData.password) {
+    if (!password) {
       newErrors.password = "Password is required"
     }
 
@@ -93,71 +89,32 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsLoading(true)
+    setError("")
 
-    if (validateForm()) {
-      setIsSubmitting(true)
+    try {
+      await login(email, password)
+      // Success is handled in the login function with redirects
+    } catch (error: any) {
+      console.error("Login submission error:", error)
 
-      try {
-        const response = await api.post(
-          "/api/auth/login",
-          new URLSearchParams({
-            username: formData.email,
-            password: formData.password,
-          }),
-          {
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-          },
-        )
+      // Extract error message from response if available
+      const errorMessage =
+        error.response?.data?.detail || error.message || "Login failed. Please check your credentials."
 
-        const data = response.data
-
-        // Check if user is verified
-        if (!data.is_verified) {
-          // Redirect to verification pending page
-          router.push(`/auth/verification-pending?email=${encodeURIComponent(formData.email)}`)
-          return
-        }
-
-        toast({
-          title: "Login successful!",
-          description: "Welcome back to Synapse.",
-        })
-
-        // Redirect to dashboard based on role
-        router.push(data.role === "expert" ? "/dashboard/teach" : "/dashboard/student")
-      } catch (error: any) {
-        console.error("Login error:", error)
-
-        // Handle specific error cases
-        if (error.response?.status === 404) {
-          setErrors({
-            form: "User not found. Please check your email or sign up.",
-          })
-        } else if (error.response?.status === 401) {
-          setErrors({
-            form: "Invalid email or password. Please try again.",
-          })
-        } else {
-          setErrors({
-            form: "Login failed. Please try again.",
-          })
-        }
-
-        toast({
-          variant: "destructive",
-          title: "Login failed",
-          description: "Please check your credentials and try again.",
-        })
-      } finally {
-        setIsSubmitting(false)
-      }
+      setError(errorMessage)
+      toast({
+        title: "Login Failed",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleSocialLogin = async (provider: string) => {
-    setIsSubmitting(true)
+    setIsLoading(true)
 
     try {
       // Social login API call would go here
@@ -183,8 +140,22 @@ export default function LoginPage() {
         form: `An error occurred during ${provider} login. Please try again.`,
       })
     } finally {
-      setIsSubmitting(false)
+      setIsLoading(false)
     }
+  }
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-vanilla-cream">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#ffc6a8] border-t-transparent"></div>
+      </div>
+    )
+  }
+
+  // If already authenticated, don't render the login form
+  if (user) {
+    return null
   }
 
   return (
@@ -213,8 +184,8 @@ export default function LoginPage() {
                   id="email"
                   name="email"
                   type="email"
-                  value={formData.email}
-                  onChange={handleChange}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className={errors.email ? "border-red-500" : ""}
                 />
                 {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
@@ -232,8 +203,8 @@ export default function LoginPage() {
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleChange}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     className={errors.password ? "border-red-500 pr-10" : "pr-10"}
                   />
                   <button
@@ -251,8 +222,8 @@ export default function LoginPage() {
                 <Checkbox
                   id="rememberMe"
                   name="rememberMe"
-                  checked={formData.rememberMe}
-                  onCheckedChange={(checked) => setFormData({ ...formData, rememberMe: checked as boolean })}
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                 />
                 <Label htmlFor="rememberMe" className="text-sm font-normal">
                   Remember me for 30 days
@@ -261,7 +232,7 @@ export default function LoginPage() {
 
               <motion.button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isLoading}
                 className="w-full bg-warm-coral hover:bg-[#ff8c61] text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 cursor-pointer"
                 whileHover={{
                   scale: 1.02,
@@ -269,7 +240,7 @@ export default function LoginPage() {
                 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {isSubmitting ? (
+                {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   <>
@@ -279,10 +250,8 @@ export default function LoginPage() {
                 )}
               </motion.button>
 
-              {errors.form && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-                  {errors.form}
-                </div>
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">{error}</div>
               )}
             </form>
 
@@ -299,7 +268,7 @@ export default function LoginPage() {
               <motion.button
                 type="button"
                 onClick={() => handleSocialLogin("google")}
-                disabled={isSubmitting}
+                disabled={isLoading}
                 className="flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-deep-cocoa font-semibold py-3 px-4 rounded-lg border border-rose-dust/20"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -328,7 +297,7 @@ export default function LoginPage() {
               <motion.button
                 type="button"
                 onClick={() => handleSocialLogin("facebook")}
-                disabled={isSubmitting}
+                disabled={isLoading}
                 className="flex items-center justify-center gap-2 bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold py-3 px-4 rounded-lg"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -340,7 +309,7 @@ export default function LoginPage() {
               <motion.button
                 type="button"
                 onClick={() => handleSocialLogin("apple")}
-                disabled={isSubmitting}
+                disabled={isLoading}
                 className="flex items-center justify-center gap-2 bg-black hover:bg-gray-900 text-white font-semibold py-3 px-4 rounded-lg"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}

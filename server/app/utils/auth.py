@@ -27,34 +27,41 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    token_data = verify_token(token)
-    if token_data is None:
+    try:
+        token_data = verify_token(token)
+        if token_data is None:
+            raise credentials_exception
+        
+        # Check if token is expired
+        if token_data.exp < datetime.now(timezone.utc):
+            raise credentials_exception
+        
+        # Find user in database
+        if token_data.role == "student":
+            user = db.students.find_one({"email": token_data.email})
+        elif token_data.role == "expert":
+            user = db.experts.find_one({"email": token_data.email})
+        else:
+            raise credentials_exception
+        
+        if user is None:
+            raise credentials_exception
+        
+        # Convert ObjectId to string
+        user["_id"] = str(user["_id"])
+        
+        return {
+            "id": user["_id"],
+            "email": user["email"],
+            "role": token_data.role,
+            "is_verified": user.get("is_verified", False),
+            "first_name": user.get("first_name", ""),
+            "last_name": user.get("last_name", ""),
+            "profile_image": user.get("profile_image", "")
+        }
+    except Exception as e:
+        print(f"Token validation error: {str(e)}")
         raise credentials_exception
-    
-    # Check if token is expired
-    if token_data.exp < datetime.now(timezone.utc):
-        raise credentials_exception
-    
-    # Find user in database
-    if token_data.role == "student":
-        user = db.students.find_one({"email": token_data.email})
-    elif token_data.role == "expert":
-        user = db.experts.find_one({"email": token_data.email})
-    else:
-        raise credentials_exception
-    
-    if user is None:
-        raise credentials_exception
-    
-    # Convert ObjectId to string
-    user["_id"] = str(user["_id"])
-    
-    return {
-        "id": user["_id"],
-        "email": user["email"],
-        "role": token_data.role,
-        "is_verified": user.get("is_verified", False)
-    }
 
 async def get_current_active_user(current_user: dict = Depends(get_current_user)):
     """

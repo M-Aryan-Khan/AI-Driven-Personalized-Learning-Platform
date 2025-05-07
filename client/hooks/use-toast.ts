@@ -122,9 +122,15 @@ function dispatch(action: Action) {
 type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
+  // Ensure description is a string
+  const safeProps = { ...props }
+  if (typeof safeProps.description === "object") {
+    safeProps.description = JSON.stringify(safeProps.description)
+  }
+  
   const id = genId()
 
-  const update = (props: ToasterToast) =>
+  const update = (props: ToasterToast) => 
     dispatch({
       type: actionTypes.UPDATE_TOAST,
       toast: { ...props, id },
@@ -134,7 +140,7 @@ function toast({ ...props }: Toast) {
   dispatch({
     type: actionTypes.ADD_TOAST,
     toast: {
-      ...props,
+      ...safeProps,
       id,
       open: true,
       onOpenChange: (open) => {

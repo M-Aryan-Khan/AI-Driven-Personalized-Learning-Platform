@@ -1,22 +1,28 @@
 import axios from "axios"
 
-// Create a custom axios instance
-const instance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+// Get the API URL from environment variable or use default
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+
+// Create axios instance with base URL
+const api = axios.create({
+  baseURL: API_URL,
+  timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // Important for cookies/auth
 })
 
-// Add a request interceptor to include auth token
-instance.interceptors.request.use(
+// Add request interceptor for auth token
+api.interceptors.request.use(
   (config) => {
-    // You can add logic here to get token from localStorage or cookies if needed
+    // Get token from localStorage
     const token = localStorage.getItem("token")
-    if (token) {
+
+    // If token exists, add to headers
+    if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
     return config
   },
   (error) => {
@@ -24,25 +30,22 @@ instance.interceptors.request.use(
   },
 )
 
-// Add a response interceptor to handle errors
-instance.interceptors.response.use(
+// Add response interceptor for error handling
+api.interceptors.response.use(
   (response) => {
     return response
   },
   (error) => {
-    // Handle 401 Unauthorized errors
-    if (error.response && error.response.status === 401) {
-      // Redirect to login or refresh token
-      console.log("Unauthorized, redirecting to login")
-      // You can add redirect logic here
+    console.error("Axios error:", error)
+
+    // Handle token expiration
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token")
+      // Optionally redirect to login
     }
 
-    // Log the error but don't show it to the user
-    console.error("API Error:", error.message)
-
-    // Return a rejected promise but don't show error messages in the UI
     return Promise.reject(error)
   },
 )
 
-export default instance
+export default api

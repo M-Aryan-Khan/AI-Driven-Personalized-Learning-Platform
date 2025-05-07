@@ -68,7 +68,10 @@ def verify_token(token: str) -> Optional[TokenData]:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         role: str = payload.get("role")
-        exp: datetime = datetime.fromtimestamp(payload.get("exp"), tz=timezone.utc)
+        
+        # Convert exp from timestamp to datetime object
+        exp_timestamp = payload.get("exp")
+        exp = datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
         
         if email is None or role is None:
             return None

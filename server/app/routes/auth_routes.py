@@ -383,8 +383,13 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
     )
 
 @router.post("/logout")
-async def logout(response: Response):
-    response.delete_cookie(key="access_token", path="/")
+async def logout(current_user: dict = Depends(get_current_user)):
+    """
+    Logout user
+    
+    This endpoint doesn't actually do anything on the server since JWT tokens are stateless,
+    but it's included for completeness. The client should delete the token.
+    """
     return {"message": "Successfully logged out"}
 
 @router.post("/forgot-password")
@@ -567,13 +572,36 @@ async def refresh_token(
             detail=f"An error occurred during token refresh: {str(e)}"
         )
 
-@router.get("/me")
-async def get_me(user = Depends(get_current_user_from_cookie)):
+@router.get("/me", response_model=dict)
+async def get_current_user_info(current_user: dict = Depends(get_current_user)):
+    """
+    Get current user info
+    """
+    # Get additional user info based on role
+    if current_user["role"] == "student":
+        user = db.students.find_one({"_id": ObjectId(current_user["id"])})
+    elif current_user["role"] == "expert":
+        user = db.experts.find_one({"_id": ObjectId(current_user["id"])})
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user role"
+        )
+    
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
         )
+    
+    # Convert ObjectId to string
+    user["id"] = str(user["_id"])
+    del user["_id"]
+    
+    # Remove sensitive information
+    if "hashed_password" in user:
+        del user["hashed_password"]
+    
     return user
 
 

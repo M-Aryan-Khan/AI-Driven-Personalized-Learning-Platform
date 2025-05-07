@@ -53,7 +53,7 @@ class UserResponse(UserBase):
 class TokenData(BaseModel):
     email: Optional[str] = None
     role: Optional[str] = None
-    exp: datetime
+    exp: Optional[datetime] = None
 
 class Token(BaseModel):
     access_token: str

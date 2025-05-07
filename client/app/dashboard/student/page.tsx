@@ -28,15 +28,7 @@ export default function StudentDashboard() {
           return
         }
 
-        // For development, use mock data
-        if (process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_USE_MOCK === "true") {
-          setSessionCount(0)
-          setLoading(false)
-          return
-        }
-
-        // In a real app, this would be an API call
-        // Try to fetch sessions to verify authentication is working
+        // Fetch sessions from the backend
         try {
           const response = await fetch("/api/students/sessions", {
             headers: {
@@ -49,6 +41,13 @@ export default function StudentDashboard() {
             setSessionCount(data.length || 0)
           } else {
             console.error("Failed to fetch sessions:", response.status)
+
+            // If unauthorized, clear token and redirect to login
+            if (response.status === 401) {
+              localStorage.removeItem("token")
+              router.push("/auth/login")
+            }
+
             setSessionCount(0)
           }
         } catch (error) {
@@ -60,8 +59,11 @@ export default function StudentDashboard() {
       }
     }
 
-    fetchSessions()
-  }, [])
+    // Only fetch if user is authenticated
+    if (user && user.id) {
+      fetchSessions()
+    }
+  }, [user, router])
 
   const handleFindTutors = () => {
     router.push("/dashboard/student/find-tutors")
