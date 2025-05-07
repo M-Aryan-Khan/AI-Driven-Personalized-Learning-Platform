@@ -113,7 +113,7 @@ async def search_experts(
     min_rate: Optional[float] = None,
     max_rate: Optional[float] = None,
     min_rating: Optional[float] = None,
-    current_user: dict = Depends(require_role("student"))
+    # current_user: dict = Depends(require_role("student"))
 ):
     """
     Search for experts
