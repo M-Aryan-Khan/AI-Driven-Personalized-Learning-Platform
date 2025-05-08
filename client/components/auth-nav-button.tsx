@@ -33,7 +33,7 @@ export default function AuthNavButton({ className = "" }: AuthNavButtonProps) {
         className={className}
       >
         <Link href={dashboardLink}>
-          <button className="bg-[#ffc6a8] hover:bg-[#ffb289] font-semibold transition-all ease-in-out duration-200 text-deep-cocoa px-4 rounded-lg py-2 text-md">
+          <button className="hover:cursor-pointer bg-[#ffc6a8] hover:bg-[#ffb289] font-semibold transition-all ease-in-out duration-200 text-deep-cocoa px-4 rounded-lg py-3 text-md">
             Go to Dashboard
           </button>
         </Link>
@@ -48,7 +48,7 @@ export default function AuthNavButton({ className = "" }: AuthNavButtonProps) {
       className={className}
     >
       <Link href="/auth/login">
-        <button className="border-2 border-[#ffc6a8] hover:bg-[#fff2e7] font-semibold transition-all ease-in-out duration-200 text-deep-cocoa px-4 rounded-lg py-2 text-md flex items-center gap-2">
+        <button className="hover:cursor-pointer border-2 border-[#ffc6a8] hover:bg-[#fff2e7] font-semibold transition-all ease-in-out duration-200 text-deep-cocoa px-4 rounded-lg py-2 text-md flex items-center gap-2">
           <LogIn size={18} />
           Log In
         </button>

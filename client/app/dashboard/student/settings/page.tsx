@@ -25,7 +25,6 @@ export default function SettingsPage() {
     first_name: user?.first_name || "",
     last_name: user?.last_name || "",
     bio: user?.bio || "",
-    phone_number: user?.phone_number || "",
     time_zone: user?.time_zone || "",
     learning_goals: user?.learning_goals?.join(", ") || "",
     preferred_languages: user?.preferred_languages?.join(", ") || "",
@@ -208,7 +207,7 @@ export default function SettingsPage() {
       : "ST";
 
   return (
-    <div className="container mx-auto max-w-4xl">
+    <div className="container mx-auto max-w-6xl">
       <h1 className="mb-6 text-3xl font-bold text-deep-cocoa">Settings</h1>
 
       <Tabs defaultValue="account">
@@ -341,19 +340,6 @@ export default function SettingsPage() {
                           onChange={handleProfileChange}
                         />
                       </div>
-                    </div>
-
-                    <div className="mb-6">
-                      <Label htmlFor="phone_number" className="mb-2 block">
-                        Phone number
-                      </Label>
-                      <Input
-                        id="phone_number"
-                        name="phone_number"
-                        value={profileData.phone_number}
-                        onChange={handleProfileChange}
-                        placeholder="+1 (555) 123-4567"
-                      />
                     </div>
 
                     <div className="mb-6">

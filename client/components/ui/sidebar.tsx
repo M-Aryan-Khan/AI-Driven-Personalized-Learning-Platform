@@ -178,13 +178,13 @@ export function Sidebar({
   return (
     <div
       className={cn(
-        "flex flex-col h-auto bg-white border-r border-rose-dust/20 transition-all duration-300 dark:bg-deep-cocoa/90 dark:border-rose-dust/10 ",
+        "flex flex-col h-auto bg-white border-r border-[#d9a5a0]/20 transition-all duration-300 dark:bg-deep-cocoa/90 dark:border-rose-dust/10 ",
         collapsed ? "w-16" : "w-64",
         className
       )}
       {...props}
     >
-      <div className="flex items-center justify-between h-16 px-4 border-b border-rose-dust/20 dark:border-rose-dust/10">
+      <div className="flex items-center justify-between h-16 px-4 border-b border-[#d9a5a0]/20 dark:border-rose-dust/10">
         {!collapsed && (
           <h2 className="font-semibold text-deep-cocoa dark:text-vanilla-cream transition-opacity duration-300">
             Synapse
