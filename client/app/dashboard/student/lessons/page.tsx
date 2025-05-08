@@ -45,12 +45,12 @@ export default function MyLessons() {
         <h1 className="text-3xl font-bold text-deep-cocoa">My lessons</h1>
 
         <div className="flex gap-2">
-          <Button variant="outline" className="border-gray-300 text-gray-600 hover:bg-gray-50">
+          <Button variant="outline" className="border-gray-300 text-gray-600 hover:bg-gray-50 hover:cursor-pointer">
             Transfer lessons or subscription
           </Button>
 
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button className="bg-[#ff9b7b] text-white hover:bg-[#ff8a63]">Schedule lesson</Button>
+            <Button className="bg-[#ff9b7b] text-white hover:bg-[#ff8a63] hover:cursor-pointer">Schedule lesson</Button>
           </motion.div>
         </div>
       </div>

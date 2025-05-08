@@ -140,15 +140,15 @@ export default function CalendarTab() {
     <div>
       <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={handlePrevWeek} className="h-8 w-8 rounded-full p-0">
+          <Button variant="outline" size="icon" onClick={handlePrevWeek} className="h-8 w-8 rounded-full p-0 hover:cursor-pointer">
             <ChevronLeft className="h-4 w-4" />
           </Button>
 
-          <Button variant="outline" size="sm" onClick={handleToday} className="h-8 rounded-full">
+          <Button variant="outline" size="sm" onClick={handleToday} className="h-8 rounded-full hover:cursor-pointer">
             Today
           </Button>
 
-          <Button variant="outline" size="icon" onClick={handleNextWeek} className="h-8 w-8 rounded-full p-0">
+          <Button variant="outline" size="icon" onClick={handleNextWeek} className="h-8 w-8 rounded-full p-0 hover:cursor-pointer">
             <ChevronRight className="h-4 w-4" />
           </Button>
 
@@ -160,7 +160,7 @@ export default function CalendarTab() {
             variant={currentView === "week" ? "default" : "outline"}
             size="sm"
             onClick={() => setCurrentView("week")}
-            className={currentView === "week" ? "bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289]" : ""}
+            className={currentView === "week" ? "bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289] hover:cursor-pointer" : "hover:cursor-pointer"}
           >
             Week
           </Button>
@@ -169,7 +169,7 @@ export default function CalendarTab() {
             variant={currentView === "day" ? "default" : "outline"}
             size="sm"
             onClick={() => setCurrentView("day")}
-            className={currentView === "day" ? "bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289]" : ""}
+            className={currentView === "day" ? "bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289] hover:cursor-pointer" : "hover:cursor-pointer"}
           >
             Day
           </Button>

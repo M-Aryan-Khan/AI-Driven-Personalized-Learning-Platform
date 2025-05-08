@@ -100,7 +100,7 @@ export default function StudentDashboard() {
 
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
-              className="mb-4 w-full bg-[#ff9b7b] text-white hover:bg-[#ff8a63]"
+              className="mb-4 w-full bg-[#ff9b7b] text-white hover:bg-[#ff8a63] hover:cursor-pointer"
               size="lg"
               onClick={handleScheduleLesson}
             >
@@ -108,7 +108,7 @@ export default function StudentDashboard() {
             </Button>
           </motion.div>
 
-          <Button variant="link" className="w-full text-deep-cocoa" onClick={handleFindTutors}>
+          <Button variant="link" className="w-full text-deep-cocoa hover:cursor-pointer" onClick={handleFindTutors}>
             Upgrade subscription
           </Button>
         </div>
@@ -121,7 +121,7 @@ export default function StudentDashboard() {
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <h3 className="mb-2 text-xl font-semibold text-deep-cocoa">No active subscriptions</h3>
               <p className="mb-4 text-gray-500">Subscribe to a tutor to get regular lessons</p>
-              <Button onClick={handleFindTutors} className="bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289]">
+              <Button onClick={handleFindTutors} className="bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289] hover:cursor-pointer">
                 Find tutors
               </Button>
             </div>
@@ -154,7 +154,7 @@ export default function StudentDashboard() {
               <CardContent className="p-4">
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <p className="mb-4 text-gray-500">Find tutors to start your learning journey</p>
-                  <Button onClick={handleFindTutors} className="bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289]">
+                  <Button onClick={handleFindTutors} className="bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289] hover:cursor-pointer">
                     Browse tutors
                   </Button>
                 </div>
