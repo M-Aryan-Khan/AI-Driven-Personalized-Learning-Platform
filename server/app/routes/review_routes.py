@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends, status
-from typing import List
+from fastapi import APIRouter, HTTPException, Depends, status, Body
+from typing import List, Optional
 from datetime import datetime, timezone
 from bson import ObjectId
 
@@ -12,81 +12,14 @@ router = APIRouter(
     tags=["Reviews"],
 )
 
-@router.post("/", response_model=dict)
+@router.post("/expert/{expert_id}", response_model=ReviewResponse)
 async def create_review(
+    expert_id: str,
     review: ReviewCreate,
     current_user: dict = Depends(require_role("student"))
 ):
     """
     Create a review for an expert
-    """
-    # Verify session exists
-    session = db.sessions.find_one({"_id": ObjectId(review.session_id)})
-    if not session:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Session not found"
-        )
-    
-    # Verify student has access to this session
-    if session["student_id"] != current_user["id"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have access to this session"
-        )
-    
-    # Verify session is completed
-    if session["status"] != "completed":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You can only review completed sessions"
-        )
-    
-    # Check if review already exists
-    existing_review = db.reviews.find_one({
-        "session_id": review.session_id,
-        "student_id": current_user["id"]
-    })
-    
-    if existing_review:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="You have already reviewed this session"
-        )
-    
-    # Create review
-    review_data = review.dict()
-    review_data["created_at"] = datetime.now(timezone.utc)
-    
-    # Insert review
-    result = db.reviews.insert_one(review_data)
-    
-    # Update expert rating
-    expert_reviews = list(db.reviews.find({"expert_id": review.expert_id}))
-    average_rating = sum(r["rating"] for r in expert_reviews) / len(expert_reviews)
-    
-    db.experts.update_one(
-        {"_id": ObjectId(review.expert_id)},
-        {
-            "$set": {
-                "rating": average_rating,
-                "reviews_count": len(expert_reviews)
-            }
-        }
-    )
-    
-    return {
-        "message": "Review submitted successfully",
-        "review_id": str(result.inserted_id)
-    }
-
-@router.get("/expert/{expert_id}", response_model=List[ReviewResponse])
-async def get_expert_reviews(
-    expert_id: str,
-    current_user: dict = Depends(get_current_active_user)
-):
-    """
-    Get reviews for an expert
     """
     # Verify expert exists
     expert = db.experts.find_one({"_id": ObjectId(expert_id)})
@@ -96,44 +29,149 @@ async def get_expert_reviews(
             detail="Expert not found"
         )
     
-    # Find reviews
-    reviews = list(db.reviews.find({"expert_id": expert_id}).sort("created_at", -1))
+    # Verify student has had a session with this expert
+    session = db.sessions.find_one({
+        "student_id": current_user["id"],
+        "expert_id": expert_id,
+        "status": "completed"
+    })
     
-    # Enrich reviews with student info
-    for review in reviews:
-        review["id"] = str(review["_id"])
-        
-        # Get student info
-        student = db.students.find_one({"_id": ObjectId(review["student_id"])})
-        if student:
-            review["student_name"] = f"{student['first_name']} {student['last_name']}"
-            review["student_profile_image"] = student.get("profile_image")
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only review experts after completing a session with them"
+        )
     
-    return reviews
+    # Check if student has already reviewed this expert
+    existing_review = db.reviews.find_one({
+        "student_id": current_user["id"],
+        "expert_id": expert_id
+    })
+    
+    if existing_review:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You have already reviewed this expert"
+        )
+    
+    # Get student info
+    student = db.students.find_one({"_id": ObjectId(current_user["id"])})
+    
+    # Create review
+    review_data = {
+        "student_id": current_user["id"],
+        "student_name": f"{student['first_name']} {student['last_name']}",
+        "student_profile_image": student.get("profile_image"),
+        "expert_id": expert_id,
+        "rating": review.rating,
+        "comment": review.comment,
+        "created_at": datetime.now(timezone.utc)
+    }
+    
+    # Insert review
+    result = db.reviews.insert_one(review_data)
+    
+    # Update expert rating
+    all_reviews = list(db.reviews.find({"expert_id": expert_id}))
+    total_rating = sum(r["rating"] for r in all_reviews)
+    new_rating = total_rating / len(all_reviews)
+    
+    db.experts.update_one(
+        {"_id": ObjectId(expert_id)},
+        {
+            "$set": {
+                "rating": new_rating,
+                "reviews_count": len(all_reviews)
+            }
+        }
+    )
+    
+    # Return created review
+    created_review = {
+        "id": str(result.inserted_id),
+        **review_data
+    }
+    
+    return created_review
 
-@router.get("/session/{session_id}", response_model=ReviewResponse)
-async def get_session_review(
-    session_id: str,
+@router.get("/expert/{expert_id}", response_model=List[ReviewResponse])
+async def get_expert_reviews(
+    expert_id: str,
     current_user: dict = Depends(get_current_active_user)
 ):
     """
-    Get review for a session
+    Get all reviews for an expert
     """
-    # Find review
-    review = db.reviews.find_one({"session_id": session_id})
+    # Verify expert exists
+    expert = db.experts.find_one({"_id": ObjectId(expert_id)})
+    if not expert:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Expert not found"
+        )
+    
+    # Get reviews
+    reviews = list(db.reviews.find({"expert_id": expert_id}).sort("created_at", -1))
+    
+    # Convert ObjectId to string
+    for review in reviews:
+        review["id"] = str(review["_id"])
+    
+    return reviews
+
+@router.delete("/expert/{expert_id}/{review_id}", response_model=dict)
+async def delete_review(
+    expert_id: str,
+    review_id: str,
+    current_user: dict = Depends(get_current_active_user)
+):
+    """
+    Delete a review
+    """
+    # Get review
+    review = db.reviews.find_one({"_id": ObjectId(review_id)})
     if not review:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Review not found"
         )
     
-    # Convert ObjectId to string
-    review["id"] = str(review["_id"])
+    # Verify user has permission to delete this review
+    if review["student_id"] != current_user["id"] and current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have permission to delete this review"
+        )
     
-    # Get student info
-    student = db.students.find_one({"_id": ObjectId(review["student_id"])})
-    if student:
-        review["student_name"] = f"{student['first_name']} {student['last_name']}"
-        review["student_profile_image"] = student.get("profile_image")
+    # Delete review
+    db.reviews.delete_one({"_id": ObjectId(review_id)})
     
-    return review
+    # Update expert rating
+    all_reviews = list(db.reviews.find({"expert_id": expert_id}))
+    
+    if all_reviews:
+        total_rating = sum(r["rating"] for r in all_reviews)
+        new_rating = total_rating / len(all_reviews)
+        
+        db.experts.update_one(
+            {"_id": ObjectId(expert_id)},
+            {
+                "$set": {
+                    "rating": new_rating,
+                    "reviews_count": len(all_reviews)
+                }
+            }
+        )
+    else:
+        # No reviews left, reset rating
+        db.experts.update_one(
+            {"_id": ObjectId(expert_id)},
+            {
+                "$set": {
+                    "rating": 0.0,
+                    "reviews_count": 0
+                }
+            }
+        )
+    
+    return {"message": "Review deleted successfully"}

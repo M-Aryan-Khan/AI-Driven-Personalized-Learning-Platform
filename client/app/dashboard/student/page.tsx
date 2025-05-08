@@ -74,7 +74,7 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="container mx-auto max-w-5xl">
+    <div className="container mx-auto max-w-6xl">
       <div className="mb-8 rounded-lg bg-[#fff2e7] p-6">
         <h1 className="mb-2 text-2xl font-bold text-deep-cocoa">How&apos;s it going, {user?.first_name || "there"}?</h1>
         <h2 className="mb-6 text-3xl font-bold text-deep-cocoa">Get extra hours to continue learning</h2>

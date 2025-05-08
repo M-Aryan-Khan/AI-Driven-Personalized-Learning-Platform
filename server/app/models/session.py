@@ -2,45 +2,36 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 
-class SessionCreate(BaseModel):
-    expert_id: str
+class SessionBase(BaseModel):
     student_id: str
+    expert_id: str
     date: datetime
-    duration: int  # in minutes
+    duration: int = Field(..., ge=30, le=180)  # Duration in minutes
     topic: str
     description: Optional[str] = None
-    notes: Optional[str] = None
+    meeting_link: Optional[str] = None
+
+class SessionCreate(SessionBase):
+    pass
 
 class SessionUpdate(BaseModel):
-    status: Optional[str] = None  # scheduled, completed, cancelled
-    notes: Optional[str] = None
-    recording_url: Optional[str] = None
-    meeting_link: Optional[str] = None
     date: Optional[datetime] = None
-    duration: Optional[int] = None
+    duration: Optional[int] = Field(None, ge=30, le=180)
     topic: Optional[str] = None
     description: Optional[str] = None
-
-class SessionInDB(BaseModel):
-    id: str
-    expert_id: str
-    student_id: str
-    date: datetime
-    duration: int
-    topic: str
-    description: Optional[str] = None
-    status: str = "scheduled"  # scheduled, completed, cancelled
-    notes: Optional[str] = None
-    recording_url: Optional[str] = None
+    status: Optional[str] = None
     meeting_link: Optional[str] = None
+    notes: Optional[str] = None
+
+class SessionResponse(SessionBase):
+    id: str
+    status: str  # scheduled, completed, cancelled
     created_at: datetime
     updated_at: Optional[datetime] = None
-    
-    class Config:
-        from_attributes = True
-
-class SessionResponse(SessionInDB):
-    expert_name: str
-    student_name: str
+    expert_name: Optional[str] = None
     expert_profile_image: Optional[str] = None
+    student_name: Optional[str] = None
     student_profile_image: Optional[str] = None
+    notes: Optional[str] = None
+    materials: Optional[List[str]] = None
+    recording_url: Optional[str] = None

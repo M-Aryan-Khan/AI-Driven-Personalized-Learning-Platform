@@ -3,100 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Synapse Session is Confirmed</title>
+    <title>Session Confirmation</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            color: #4A3933;
-            margin: 0;
-            padding: 0;
-            background-color: #FFF8F0;
-        }
-        .container {
+            color: #333;
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         .header {
             text-align: center;
-            padding: 20px 0;
-            border-bottom: 1px solid #FFD8CC;
+            margin-bottom: 30px;
         }
         .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #FF9A76;
+            max-width: 150px;
+            margin-bottom: 20px;
         }
-        .content {
-            padding: 20px 0;
+        .session-details {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .session-details h2 {
+            margin-top: 0;
+            color: #ff9b7b;
+        }
+        .detail-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .detail-label {
+            font-weight: bold;
+            width: 120px;
         }
         .button {
             display: inline-block;
-            background-color: #FF9A76;
+            background-color: #ff9b7b;
             color: white;
             text-decoration: none;
             padding: 12px 24px;
             border-radius: 4px;
             font-weight: bold;
-            margin: 20px 0;
+            margin-top: 20px;
         }
         .footer {
-            text-align: center;
-            padding: 20px 0;
+            margin-top: 40px;
             font-size: 12px;
-            color: #C4A69D;
-            border-top: 1px solid #FFD8CC;
-        }
-        .session-details {
-            background-color: #FFF8F0;
-            padding: 15px;
-            border-radius: 4px;
-            margin: 20px 0;
-        }
-        .session-details h3 {
-            margin-top: 0;
-            color: #FF9A76;
-        }
-        .session-details p {
-            margin: 5px 0;
+            color: #777;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">Synapse</div>
+    <div class="header">
+        <img src="https://synapse-learning.vercel.app/logo.png" alt="Synapse Learning" class="logo">
+        <h1>Your Session is Confirmed!</h1>
+    </div>
+    
+    <p>Hello {{name}},</p>
+    
+    <p>Your session has been successfully scheduled. Here are the details:</p>
+    
+    <div class="session-details">
+        <h2>Session Details</h2>
+        
+        <div class="detail-row">
+            <div class="detail-label">Tutor:</div>
+            <div>{{session.expert_name}}</div>
         </div>
-        <div class="content">
-            <h2>Your Session is Confirmed!</h2>
-            <p>Hello {{ name }},</p>
-            <p>Your session has been successfully booked. Here are the details:</p>
-            
-            <div class="session-details">
-                <h3>Session Details</h3>
-                <p><strong>Expert:</strong> {{ session.expert_name }}</p>
-                <p><strong>Date:</strong> {{ session.date.strftime('%A, %B %d, %Y') }}</p>
-                <p><strong>Time:</strong> {{ session.date.strftime('%I:%M %p') }}</p>
-                <p><strong>Duration:</strong> {{ session.duration }} minutes</p>
-                <p><strong>Topic:</strong> {{ session.topic }}</p>
-            </div>
-            
-            <p>You'll receive a reminder email 24 hours before your session. Make sure to prepare any questions or topics you'd like to discuss.</p>
-            
-            <div style="text-align: center;">
-                <a href="{{ frontend_url }}/sessions/{{ session.id }}" class="button">View Session Details</a>
-            </div>
-            
-            <p>If you need to reschedule or cancel your session, please do so at least 24 hours in advance.</p>
+        
+        <div class="detail-row">
+            <div class="detail-label">Student:</div>
+            <div>{{name}}</div>
         </div>
-        <div class="footer">
-            <p>&copy; {{ current_year }} Synapse. All rights reserved.</p>
-            <p><a href="{{ frontend_url }}">Visit our website</a></p>
+        
+        <div class="detail-row">
+            <div class="detail-label">Date:</div>
+            <div>{{session.date.strftime('%A, %B %d, %Y')}}</div>
         </div>
+        
+        <div class="detail-row">
+            <div class="detail-label">Time:</div>
+            <div>{{session.date.strftime('%I:%M %p')}} (Your local time)</div>
+        </div>
+        
+        <div class="detail-row">
+            <div class="detail-label">Duration:</div>
+            <div>{{session.duration}} minutes</div>
+        </div>
+        
+        <div class="detail-row">
+            <div class="detail-label">Topic:</div>
+            <div>{{session.topic}}</div>
+        </div>
+    </div>
+    
+    <p>You will receive a link to join the session 15 minutes before the scheduled time. Please make sure you have a stable internet connection and your camera and microphone are working properly.</p>
+    
+    <p>If you need to reschedule or cancel this session, please do so at least 24 hours in advance.</p>
+    
+    <a href="https://synapse-learning.vercel.app/dashboard/student/lessons/{{session.id}}" class="button">View Session Details</a>
+    
+    <div class="footer">
+        <p>© 2025 Synapse Learning. All rights reserved.</p>
+        <p>If you have any questions, please contact our support team at support@synapse-learning.com</p>
     </div>
 </body>
 </html>

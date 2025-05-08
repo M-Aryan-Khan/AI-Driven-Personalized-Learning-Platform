@@ -320,6 +320,7 @@ async def search_experts(
     min_rate: Optional[float] = None,
     max_rate: Optional[float] = None,
     min_rating: Optional[float] = None,
+    language: Optional[str] = None,
     current_user: dict = Depends(require_role("student"))
 ):
     """
@@ -328,7 +329,7 @@ async def search_experts(
     # Build query
     query = {"is_approved": True, "is_verified": True}
     
-    if specialty:
+    if specialty and specialty != "any":
         query["specialty"] = {"$regex": specialty, "$options": "i"}
     
     if tags:
@@ -344,13 +345,35 @@ async def search_experts(
     
     if min_rating is not None:
         query["rating"] = {"$gte": min_rating}
+        
+    if language and language != "any":
+        query["languages"] = {"$in": [language]}
     
     # Find experts
     experts = list(db.experts.find(query))
     
-    # Convert ObjectId to string
+    # Convert ObjectId to string and ensure all required fields exist
     for expert in experts:
         expert["id"] = str(expert["_id"])
+        
+        # Set default values for missing fields
+        if "specialty" not in expert or expert["specialty"] is None:
+            expert["specialty"] = "General Tutoring"
+            
+        if "tags" not in expert or not expert["tags"]:
+            expert["tags"] = []
+            
+        if "bio" not in expert or not expert["bio"]:
+            expert["bio"] = f"Experienced tutor specializing in {expert.get('specialty', 'various subjects')}."
+            
+        if "languages" not in expert or not expert["languages"]:
+            expert["languages"] = ["English"]
+            
+        if "experience_years" not in expert:
+            expert["experience_years"] = 1
+            
+        if "completed_sessions" not in expert:
+            expert["completed_sessions"] = 0
     
     return experts
 
@@ -371,6 +394,28 @@ async def get_expert_details(
     
     # Convert ObjectId to string
     expert["id"] = str(expert["_id"])
+    
+    # Set default values for missing required fields
+    if "specialty" not in expert or expert["specialty"] is None:
+        expert["specialty"] = "General Tutoring"
+        
+    if "tags" not in expert or not expert["tags"]:
+        expert["tags"] = []
+        
+    if "bio" not in expert or not expert["bio"]:
+        expert["bio"] = f"Experienced tutor specializing in {expert.get('specialty', 'various subjects')}."
+        
+    if "languages" not in expert or not expert["languages"]:
+        expert["languages"] = ["English"]
+        
+    if "experience_years" not in expert:
+        expert["experience_years"] = 1
+        
+    if "completed_sessions" not in expert:
+        expert["completed_sessions"] = 0
+        
+    if "education" not in expert or not expert["education"]:
+        expert["education"] = "Bachelor's Degree"
     
     return expert
 
