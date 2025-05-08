@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Calendar, Clock, DollarSign, Star, Users, BookOpen, MessageSquare, ChevronRight } from "lucide-react"
+import { Calendar, Clock, DollarSign, Star, Users, BookOpen, MessageSquare, ChevronRight } from 'lucide-react'
 import { motion } from "framer-motion"
 import axios from "@/lib/axios"
 
@@ -224,7 +224,7 @@ export default function ExpertDashboard() {
               </div>
               <div className="mt-4 text-sm text-gray-500">
                 {stats.completed_sessions > 0 ? (
-                  <span>Great job! Keep it up.</span>
+                  <span>Great job! Keep this spirit up and Earn</span>
                 ) : (
                   <span>Start teaching to see your progress.</span>
                 )}
@@ -471,5 +471,5 @@ export default function ExpertDashboard() {
         </div>
       </div>
     </div>
-  );
+  )
 }

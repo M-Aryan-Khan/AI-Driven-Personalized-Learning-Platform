@@ -9,10 +9,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { format, parseISO, isPast, isToday, isFuture } from "date-fns"
-import { Calendar, Clock, GraduationCap, Star, MessageCircle, Video, FileText, AlertCircle } from 'lucide-react'
+import { format, isPast, isToday, isFuture, addHours } from "date-fns"
+import { Calendar, Clock, Star, Video, FileText, AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react'
 import { motion } from "framer-motion"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 
 type Session = {
@@ -42,6 +42,7 @@ export default function LessonsTab() {
   const [reviewComment, setReviewComment] = useState("")
   const [submittingReview, setSubmittingReview] = useState(false)
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
+  const [confirmingSession, setConfirmingSession] = useState(false)
 
   useEffect(() => {
     fetchSessions()
@@ -51,16 +52,16 @@ export default function LessonsTab() {
     try {
       setLoading(true)
       const response = await axios.get("/api/students/sessions")
-      
+
       // Convert date strings to Date objects for sorting
       const sessionsWithParsedDates = response.data.map((session: Session) => ({
         ...session,
-        parsedDate: new Date(session.date)
+        parsedDate: new Date(session.date),
       }))
-      
+
       // Sort by date (ascending for upcoming, descending for past)
       sessionsWithParsedDates.sort((a: any, b: any) => a.parsedDate - b.parsedDate)
-      
+
       setSessions(sessionsWithParsedDates)
     } catch (error) {
       console.error("Error fetching sessions:", error)
@@ -99,21 +100,22 @@ export default function LessonsTab() {
 
     try {
       setSubmittingReview(true)
-      
+
       await axios.post(`/api/reviews/expert/${reviewSession.expert_id}`, {
         rating: reviewRating,
-        comment: reviewComment
+        comment: reviewComment,
+        session_id: reviewSession.id,
       })
-      
+
       toast({
         title: "Review Submitted",
         description: "Thank you for your feedback!",
       })
-      
+
       setReviewDialogOpen(false)
     } catch (error: any) {
       console.error("Error submitting review:", error)
-      
+
       if (error.response?.status === 400 && error.response?.data?.detail?.includes("already reviewed")) {
         toast({
           title: "Already Reviewed",
@@ -132,29 +134,77 @@ export default function LessonsTab() {
     }
   }
 
+  const confirmSession = async (sessionId: string) => {
+    try {
+      setConfirmingSession(true)
+
+      await axios.put(`/api/students/sessions/${sessionId}/confirm`, {
+        status: "completed",
+      })
+
+      // Update the session status locally
+      setSessions((prevSessions) =>
+        prevSessions.map((session) => (session.id === sessionId ? { ...session, status: "completed" } : session)),
+      )
+
+      toast({
+        title: "Session Confirmed",
+        description: "The session has been marked as completed and payment has been processed",
+      })
+    } catch (error) {
+      console.error("Error confirming session:", error)
+      toast({
+        title: "Error",
+        description: "Failed to confirm the session. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setConfirmingSession(false)
+    }
+  }
+
+  const reportIssue = (sessionId: string) => {
+    toast({
+      title: "Feature Coming Soon",
+      description: "The ability to report issues with sessions will be available soon.",
+    })
+  }
+
   const getUpcomingSessions = () => {
-    return sessions.filter(session => 
-      (session.status === "scheduled" || session.status === "confirmed") && 
-      isFuture(new Date(session.date))
+    return sessions.filter(
+      (session) =>
+        (session.status === "scheduled" || session.status === "confirmed") && isFuture(new Date(session.date)),
+    )
+  }
+
+  const getPendingSessions = () => {
+    return sessions.filter(
+      (session) =>
+        session.status === "pending" ||
+        (isPast(new Date(session.date)) &&
+          !isPast(addHours(new Date(session.date), session.duration / 60 + 1)) &&
+          session.status === "scheduled"),
     )
   }
 
   const getCompletedSessions = () => {
-    return sessions.filter(session => 
-      session.status === "completed" || 
-      (isPast(new Date(session.date)) && session.status === "scheduled")
-    )
+    return sessions.filter((session) => session.status === "completed")
   }
 
   const getCancelledSessions = () => {
-    return sessions.filter(session => session.status === "cancelled")
+    return sessions.filter((session) => session.status === "cancelled")
   }
 
   const renderSessionCard = (session: Session) => {
     const sessionDate = new Date(session.date)
     const isPastSession = isPast(sessionDate)
     const isTodaySession = isToday(sessionDate)
-    
+    const isPendingSession =
+      session.status === "pending" ||
+      (isPast(sessionDate) &&
+        !isPast(addHours(sessionDate, session.duration / 60 + 1)) &&
+        session.status === "scheduled")
+
     return (
       <motion.div
         key={session.id}
@@ -175,13 +225,11 @@ export default function LessonsTab() {
                     />
                   ) : (
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-[#ffc6a8] to-[#ffb289]">
-                      <span className="text-lg font-bold text-white">
-                        {session.expert_name?.charAt(0) || "E"}
-                      </span>
+                      <span className="text-lg font-bold text-white">{session.expert_name?.charAt(0) || "E"}</span>
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex-1">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <h3 className="font-medium text-deep-cocoa">{session.expert_name}</h3>
@@ -189,16 +237,19 @@ export default function LessonsTab() {
                       variant="outline"
                       className={`
                         ${session.status === "scheduled" ? "border-blue-200 bg-blue-50 text-blue-700" : ""}
+                        ${session.status === "pending" || isPendingSession ? "border-yellow-200 bg-yellow-50 text-yellow-700" : ""}
                         ${session.status === "completed" ? "border-green-200 bg-green-50 text-green-700" : ""}
                         ${session.status === "cancelled" ? "border-red-200 bg-red-50 text-red-700" : ""}
                       `}
                     >
-                      {session.status.charAt(0).toUpperCase() + session.status.slice(1)}
+                      {isPendingSession && session.status !== "pending"
+                        ? "Pending"
+                        : session.status.charAt(0).toUpperCase() + session.status.slice(1)}
                     </Badge>
                   </div>
-                  
+
                   <h4 className="mt-1 font-medium text-gray-800">{session.topic}</h4>
-                  
+
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
                     <div className="flex items-center">
                       <Calendar className="mr-1 h-4 w-4" />
@@ -206,12 +257,14 @@ export default function LessonsTab() {
                     </div>
                     <div className="flex items-center">
                       <Clock className="mr-1 h-4 w-4" />
-                      <span>{format(sessionDate, "h:mm a")} ({session.duration} min)</span>
+                      <span>
+                        {format(sessionDate, "h:mm a")} ({session.duration} min)
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex flex-col justify-center gap-2 bg-gray-50 p-4 md:w-1/3">
                 {session.status === "scheduled" && !isPastSession && (
                   <>
@@ -223,7 +276,7 @@ export default function LessonsTab() {
                       <FileText className="mr-2 h-4 w-4" />
                       View Details
                     </Button>
-                    
+
                     {session.meeting_link && isTodaySession && (
                       <Button
                         className="bg-[#ff9b7b] text-white hover:bg-[#ff8a63]"
@@ -235,7 +288,33 @@ export default function LessonsTab() {
                     )}
                   </>
                 )}
-                
+
+                {isPendingSession && (
+                  <>
+                    <Button
+                      className="bg-green-600 text-white hover:bg-green-700"
+                      onClick={() => confirmSession(session.id)}
+                      disabled={confirmingSession}
+                    >
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      {confirmingSession ? "Confirming..." : "Confirm Completion"}
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="border-amber-200 text-amber-700 hover:bg-amber-50"
+                      onClick={() => reportIssue(session.id)}
+                    >
+                      <AlertTriangle className="mr-2 h-4 w-4" />
+                      Report Issue (Coming Soon)
+                    </Button>
+
+                    <p className="mt-1 text-xs text-gray-500 italic">
+                      Note: Session will be automatically marked as completed after 1 hour from the end time if no action is taken.
+                    </p>
+                  </>
+                )}
+
                 {session.status === "completed" && (
                   <>
                     <Button
@@ -246,7 +325,7 @@ export default function LessonsTab() {
                       <FileText className="mr-2 h-4 w-4" />
                       View Details
                     </Button>
-                    
+
                     <Button
                       className="bg-[#ff9b7b] text-white hover:bg-[#ff8a63]"
                       onClick={() => openReviewDialog(session)}
@@ -256,7 +335,7 @@ export default function LessonsTab() {
                     </Button>
                   </>
                 )}
-                
+
                 {session.status === "cancelled" && (
                   <Button
                     variant="outline"
@@ -282,10 +361,7 @@ export default function LessonsTab() {
       </div>
       <h3 className="mb-1 text-lg font-medium text-deep-cocoa">No lessons found</h3>
       <p className="mb-4 text-gray-500">{message}</p>
-      <Button
-        className="bg-[#ff9b7b] text-white hover:bg-[#ff8a63]"
-        onClick={handleScheduleLesson}
-      >
+      <Button className="bg-[#ff9b7b] text-white hover:bg-[#ff8a63]" onClick={handleScheduleLesson}>
         Schedule a Lesson
       </Button>
     </div>
@@ -320,6 +396,7 @@ export default function LessonsTab() {
   }
 
   const upcomingSessions = getUpcomingSessions()
+  const pendingSessions = getPendingSessions()
   const completedSessions = getCompletedSessions()
   const cancelledSessions = getCancelledSessions()
 
@@ -328,32 +405,33 @@ export default function LessonsTab() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="upcoming">Upcoming ({upcomingSessions.length})</TabsTrigger>
+          <TabsTrigger value="pending">Pending ({pendingSessions.length})</TabsTrigger>
           <TabsTrigger value="completed">Completed ({completedSessions.length})</TabsTrigger>
           <TabsTrigger value="cancelled">Cancelled ({cancelledSessions.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="upcoming" className="space-y-4">
-          {upcomingSessions.length > 0 ? (
-            upcomingSessions.map(renderSessionCard)
-          ) : (
-            renderEmptyState("You don't have any upcoming lessons scheduled")
-          )}
+          {upcomingSessions.length > 0
+            ? upcomingSessions.map(renderSessionCard)
+            : renderEmptyState("You don't have any upcoming lessons scheduled")}
+        </TabsContent>
+
+        <TabsContent value="pending" className="space-y-4">
+          {pendingSessions.length > 0
+            ? pendingSessions.map(renderSessionCard)
+            : renderEmptyState("You don't have any pending lessons to confirm")}
         </TabsContent>
 
         <TabsContent value="completed" className="space-y-4">
-          {completedSessions.length > 0 ? (
-            completedSessions.map(renderSessionCard)
-          ) : (
-            renderEmptyState("You haven't completed any lessons yet")
-          )}
+          {completedSessions.length > 0
+            ? completedSessions.map(renderSessionCard)
+            : renderEmptyState("You haven't completed any lessons yet")}
         </TabsContent>
 
         <TabsContent value="cancelled" className="space-y-4">
-          {cancelledSessions.length > 0 ? (
-            cancelledSessions.map(renderSessionCard)
-          ) : (
-            renderEmptyState("You don't have any cancelled lessons")
-          )}
+          {cancelledSessions.length > 0
+            ? cancelledSessions.map(renderSessionCard)
+            : renderEmptyState("You don't have any cancelled lessons")}
         </TabsContent>
       </Tabs>
 
@@ -362,7 +440,7 @@ export default function LessonsTab() {
           <DialogHeader>
             <DialogTitle>Leave a Review</DialogTitle>
           </DialogHeader>
-          
+
           {reviewSession && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
@@ -386,7 +464,7 @@ export default function LessonsTab() {
                   <p className="text-sm text-gray-500">{reviewSession.topic}</p>
                 </div>
               </div>
-              
+
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">Rating</label>
                 <div className="flex gap-1">
@@ -399,16 +477,14 @@ export default function LessonsTab() {
                     >
                       <Star
                         className={`h-6 w-6 ${
-                          rating <= reviewRating
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "fill-gray-200 text-gray-200"
+                          rating <= reviewRating ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"
                         }`}
                       />
                     </button>
                   ))}
                 </div>
               </div>
-              
+
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">Your Review</label>
                 <Textarea
@@ -420,13 +496,9 @@ export default function LessonsTab() {
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setReviewDialogOpen(false)}
-              disabled={submittingReview}
-            >
+            <Button variant="outline" onClick={() => setReviewDialogOpen(false)} disabled={submittingReview}>
               Cancel
             </Button>
             <Button

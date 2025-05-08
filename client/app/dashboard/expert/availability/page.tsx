@@ -22,6 +22,7 @@ interface TimeSlot {
   day: string
   startTime: string
   endTime: string
+  isRecurring?: boolean
 }
 
 interface BlockedDate {
@@ -138,8 +139,14 @@ export default function AvailabilityPage() {
     try {
       setSaving(true)
 
+      // Ensure all time slots have isRecurring set to true
+      const updatedWeeklySchedule = weeklySchedule.map((slot) => ({
+        ...slot,
+        isRecurring: true,
+      }))
+
       const payload = {
-        weeklySchedule,
+        weeklySchedule: updatedWeeklySchedule,
         blockedDates: blockedDates.map((date) => ({
           ...date,
           date: format(date.date, "yyyy-MM-dd"),
@@ -177,6 +184,7 @@ export default function AvailabilityPage() {
         day,
         startTime: "09:00",
         endTime: "17:00",
+        isRecurring: true,
       },
     ])
   }

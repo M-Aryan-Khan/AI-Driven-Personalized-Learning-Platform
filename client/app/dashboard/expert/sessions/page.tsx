@@ -13,10 +13,11 @@ import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar, Clock, Search, Filter, ChevronDown, X, MessageSquare, FileText } from "lucide-react"
+import { Calendar, Clock, Search, Filter, ChevronDown, X, MessageSquare, FileText, CheckCircle } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
 import { useToast } from "@/hooks/use-toast"
 import axios from "@/lib/axios"
+import { isPast, addHours } from "date-fns"
 
 type Session = {
   id: string
@@ -78,8 +79,19 @@ export default function ExpertSessions() {
     // Filter by tab
     if (activeTab === "upcoming") {
       filtered = filtered.filter((session) => session.status === "scheduled" && new Date(session.date) > new Date())
+    } else if (activeTab === "pending") {
+      filtered = filtered.filter(
+        (session) =>
+          session.status === "pending" ||
+          (isPast(new Date(session.date)) &&
+            !isPast(addHours(new Date(session.date), session.duration / 60 + 1)) &&
+            session.status === "scheduled"),
+      )
     } else if (activeTab === "past") {
-      filtered = filtered.filter((session) => session.status === "completed" || new Date(session.date) < new Date())
+      filtered = filtered.filter((session) => 
+        session.status === "completed" || 
+        (isPast(new Date(session.date)) && 
+         isPast(addHours(new Date(session.date), session.duration / 60 + 1))))
     } else if (activeTab === "cancelled") {
       filtered = filtered.filter((session) => session.status === "cancelled")
     }
@@ -252,21 +264,45 @@ export default function ExpertSessions() {
     })
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "scheduled":
-        return "bg-blue-100 text-blue-800"
-      case "completed":
-        return "bg-green-100 text-green-800"
-      case "cancelled":
-        return "bg-red-100 text-red-800"
-      default:
-        return "bg-gray-100 text-gray-800"
+  const getStatusColor = (status: string, sessionDate: Date) => {
+    // Check if session is pending (past but within 1 hour of completion)
+    const isPendingSession =
+      isPast(sessionDate) &&
+      !isPast(addHours(sessionDate, (selectedSession?.duration || 60) / 60 + 1)) &&
+      status === "scheduled"
+
+  if (isPendingSession || status === "pending") {
+    return "bg-yellow-100 text-yellow-800"
+  }
+
+  switch (status) {
+    case "scheduled":
+      return "bg-blue-100 text-blue-800"
+    case "completed":
+      return "bg-green-100 text-green-800"
+    case "cancelled":
+      return "bg-red-100 text-red-800"
+    default:
+      return "bg-gray-100 text-gray-800"
     }
   }
 
   const isSessionInPast = (dateString: string) => {
     return new Date(dateString) < new Date()
+  }
+
+  const isPendingSession = (session: Session) => {
+    const sessionDate = new Date(session.date)
+    return (
+      session.status === "pending" ||
+      (isPast(sessionDate) &&
+        !isPast(addHours(sessionDate, session.duration / 60 + 1)) &&
+        session.status === "scheduled")
+    )
+  }
+
+  const getSessionCount = () => {
+    return sessions.filter((session) => session.status === "completed").length
   }
 
   return (
@@ -275,6 +311,9 @@ export default function ExpertSessions() {
         <div>
           <h1 className="text-3xl font-bold text-deep-cocoa">Sessions</h1>
           <p className="text-gray-600">Manage your teaching sessions</p>
+          <p className="mt-1 text-sm font-medium text-gray-600">
+            Total completed sessions: <span className="font-bold text-deep-cocoa">{getSessionCount()}</span>
+          </p>
         </div>
 
         <Button
@@ -344,6 +383,7 @@ export default function ExpertSessions() {
                         <SelectContent>
                           <SelectItem value="all">All statuses</SelectItem>
                           <SelectItem value="scheduled">Scheduled</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
                           <SelectItem value="completed">Completed</SelectItem>
                           <SelectItem value="cancelled">Cancelled</SelectItem>
                         </SelectContent>
@@ -358,6 +398,7 @@ export default function ExpertSessions() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-6">
               <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+              <TabsTrigger value="pending">Pending</TabsTrigger>
               <TabsTrigger value="past">Past</TabsTrigger>
               <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
             </TabsList>
@@ -398,8 +439,10 @@ export default function ExpertSessions() {
                       <div className="flex-1">
                         <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-center">
                           <h3 className="font-medium text-deep-cocoa">{session.student_name}</h3>
-                          <Badge className={getStatusColor(session.status)}>
-                            {session.status.charAt(0).toUpperCase() + session.status.slice(1)}
+                          <Badge className={getStatusColor(session.status, new Date(session.date))}>
+                            {isPendingSession(session) && session.status !== "pending"
+                              ? "Pending"
+                              : session.status.charAt(0).toUpperCase() + session.status.slice(1)}
                           </Badge>
                         </div>
                         <div className="mt-1 flex flex-col gap-1 text-sm text-gray-500 sm:flex-row sm:items-center sm:gap-4">
@@ -415,7 +458,7 @@ export default function ExpertSessions() {
                         <p className="mt-1 text-sm text-gray-700">{session.topic}</p>
                       </div>
                       <div className="flex gap-2 self-end sm:self-center">
-                        {session.status === "scheduled" && !isSessionInPast(session.date) && (
+                        {(session.status === "scheduled" || isPendingSession(session)) && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -451,9 +494,11 @@ export default function ExpertSessions() {
                 <p className="text-gray-500">
                   {activeTab === "upcoming"
                     ? "You don't have any upcoming sessions. Set your availability to receive bookings."
-                    : activeTab === "past"
-                      ? "You don't have any past sessions yet."
-                      : "You don't have any cancelled sessions."}
+                    : activeTab === "pending"
+                      ? "You don't have any pending sessions awaiting confirmation."
+                      : activeTab === "past"
+                        ? "You don't have any past sessions yet."
+                        : "You don't have any cancelled sessions."}
                 </p>
                 {activeTab === "upcoming" && (
                   <Button
@@ -494,8 +539,10 @@ export default function ExpertSessions() {
               </Avatar>
               <div>
                 <h3 className="text-lg font-medium text-deep-cocoa">{selectedSession.student_name}</h3>
-                <Badge className={getStatusColor(selectedSession.status)}>
-                  {selectedSession.status.charAt(0).toUpperCase() + selectedSession.status.slice(1)}
+                <Badge className={getStatusColor(selectedSession.status, new Date(selectedSession.date))}>
+                  {isPendingSession(selectedSession) && selectedSession.status !== "pending"
+                    ? "Pending"
+                    : selectedSession.status.charAt(0).toUpperCase() + selectedSession.status.slice(1)}
                 </Badge>
               </div>
             </div>
@@ -516,7 +563,9 @@ export default function ExpertSessions() {
               <div>
                 <p className="text-sm font-medium text-gray-500">Status</p>
                 <p className="text-deep-cocoa">
-                  {selectedSession.status.charAt(0).toUpperCase() + selectedSession.status.slice(1)}
+                  {isPendingSession(selectedSession) && selectedSession.status !== "pending"
+                    ? "Pending"
+                    : selectedSession.status.charAt(0).toUpperCase() + selectedSession.status.slice(1)}
                 </p>
               </div>
             </div>
@@ -560,7 +609,7 @@ export default function ExpertSessions() {
                 Message Student
               </Button>
 
-              {selectedSession.status === "scheduled" && (
+              {(selectedSession.status === "scheduled" || isPendingSession(selectedSession)) && (
                 <>
                   <Button
                     className="bg-warm-coral text-white hover:bg-[#ff8c61]"
@@ -582,14 +631,13 @@ export default function ExpertSessions() {
                     </Button>
                   )}
 
-                  {isSessionInPast(selectedSession.date) && (
-                    <Button
-                      className="bg-green-600 text-white hover:bg-green-700"
-                      onClick={handleCompleteSession}
-                      disabled={savingSession}
-                    >
-                      Mark as Completed
-                    </Button>
+                  {isPendingSession(selectedSession) && (
+                    <div className="mt-2 rounded-md bg-yellow-50 p-3 text-sm text-yellow-700">
+                      <p className="flex items-center">
+                        <Clock className="mr-2 h-4 w-4" />
+                        This session is pending student confirmation. It will be automatically marked as completed if the student takes no action within 1 hour after the session end time.
+                      </p>
+                    </div>
                   )}
                 </>
               )}

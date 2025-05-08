@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, EmailStr
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 class ExpertBase(BaseModel):
@@ -61,7 +61,7 @@ class ExpertProfile(ExpertSearchResult):
     location: Optional[str] = None
     timezone: Optional[str] = None
     teaching_style: Optional[str] = None
-    availability: Optional[Dict[str, List[str]]] = None
+    availability: Optional[Dict[str, Any]] = None
     what_to_expect: Optional[List[str]] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -71,6 +71,7 @@ class ExpertInDB(ExpertBase):
     hashed_password: str
     is_verified: bool = False
     is_approved: bool = False
+    is_profile_completed: bool = False
     verification_code: Optional[str] = None
     reset_code: Optional[str] = None
     profile_image: Optional[str] = None

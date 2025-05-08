@@ -441,7 +441,7 @@ async def get_expert_availability(
             detail="Expert not found"
         )
     
-    # If no date range is provided, use the next 7 days
+    # If no date range is provided, use the next 14 days
     if not start_date:
         start_date_obj = datetime.now(timezone.utc).date()
     else:
@@ -451,24 +451,43 @@ async def get_expert_availability(
             start_date_obj = datetime.now(timezone.utc).date()
     
     if not end_date:
-        # Limit to 7 days to prevent timeout
-        end_date_obj = (datetime.now(timezone.utc) + timedelta(days=7)).date()
+        # Use 14 days range
+        end_date_obj = (datetime.now(timezone.utc) + timedelta(days=14)).date()
     else:
         try:
             end_date_obj = datetime.strptime(end_date, "%Y-%m-%d").date()
-            # Ensure we don't exceed 7 days to prevent timeout
-            max_end_date = start_date_obj + timedelta(days=7)
+            # Ensure we don't exceed 14 days to prevent timeout
+            max_end_date = start_date_obj + timedelta(days=14)
             if end_date_obj > max_end_date:
                 end_date_obj = max_end_date
         except ValueError:
-            end_date_obj = (datetime.now(timezone.utc) + timedelta(days=7)).date()
+            end_date_obj = (datetime.now(timezone.utc) + timedelta(days=14)).date()
     
-    # Generate demo availability data for quick response
+    # Get expert's availability settings
+    expert_availability = expert.get("availability", {})
+    weekly_schedule = expert_availability.get("weeklySchedule", [])
+    blocked_dates = expert_availability.get("blockedDates", [])
+    settings = expert_availability.get("settings", {
+        "timezone": "UTC",
+        "bufferTime": 15,
+        "maxSessionsPerDay": 5,
+        "autoAccept": False
+    })
+    
+    # Convert blocked dates to a list of date strings for easy checking
+    blocked_date_strings = []
+    for blocked_date in blocked_dates:
+        if isinstance(blocked_date, dict) and "date" in blocked_date:
+            # Handle both string and datetime formats
+            if isinstance(blocked_date["date"], str):
+                blocked_date_strings.append(blocked_date["date"])
+            else:
+                blocked_date_strings.append(blocked_date["date"].strftime("%Y-%m-%d"))
+    
+    # Generate availability based on weekly schedule
     availability = {}
     current_date = start_date_obj
     
-    # Skip complex availability calculation and just generate demo data
-    # This ensures the endpoint responds quickly
     while current_date <= end_date_obj:
         date_str = current_date.strftime("%Y-%m-%d")
         
@@ -477,16 +496,50 @@ async def get_expert_availability(
             current_date += timedelta(days=1)
             continue
         
-        # Skip weekends for demo data
-        if current_date.weekday() < 5:  # Monday to Friday
+        # Skip blocked dates
+        if date_str in blocked_date_strings:
+            current_date += timedelta(days=1)
+            continue
+        
+        # Get day of week (0 = Monday, 6 = Sunday)
+        day_of_week = current_date.weekday()
+        day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        day_name = day_names[day_of_week]
+        
+        # Find time slots for this day
+        day_slots = [slot for slot in weekly_schedule if slot.get("day") == day_name]
+        
+        if day_slots:
             availability[date_str] = []
-            for hour in range(9, 17):  # 9 AM to 5 PM
-                availability[date_str].append(f"{hour:02d}:00")
-                availability[date_str].append(f"{hour:02d}:30")
+            
+            for slot in day_slots:
+                start_time = slot.get("startTime", "09:00")
+                end_time = slot.get("endTime", "17:00")
+                
+                # Generate time slots in 30-minute increments
+                start_hour, start_minute = map(int, start_time.split(":"))
+                end_hour, end_minute = map(int, end_time.split(":"))
+                
+                start_minutes = start_hour * 60 + start_minute
+                end_minutes = end_hour * 60 + end_minute
+                
+                # Buffer time between sessions
+                buffer_time = settings.get("bufferTime", 15)
+                
+                # Generate time slots
+                current_minutes = start_minutes
+                while current_minutes + buffer_time <= end_minutes:
+                    hour = current_minutes // 60
+                    minute = current_minutes % 60
+                    time_slot = f"{hour:02d}:{minute:02d}"
+                    availability[date_str].append(time_slot)
+                    
+                    # Increment by 30 minutes
+                    current_minutes += 30
         
         current_date += timedelta(days=1)
     
-    # Check for existing bookings and remove those time slots (only if we have availability)
+    # Check for existing bookings and remove those time slots
     if availability:
         # Get all sessions for this expert in the date range
         start_of_range = datetime.combine(start_date_obj, datetime.min.time()).replace(tzinfo=timezone.utc)
@@ -498,14 +551,47 @@ async def get_expert_availability(
             "status": {"$in": ["scheduled", "confirmed"]}
         }))
         
+        # Buffer time between sessions (in minutes)
+        buffer_time = settings.get("bufferTime", 15)
+        
         # Remove booked time slots
         for session in sessions:
             session_date = session["date"]
             session_date_str = session_date.strftime("%Y-%m-%d")
             session_time = session_date.strftime("%H:%M")
+            session_duration = session.get("duration", 60)  # in minutes
             
-            if session_date_str in availability and session_time in availability[session_date_str]:
-                availability[session_date_str].remove(session_time)
+            # Skip if this date is not in our availability
+            if session_date_str not in availability:
+                continue
+                
+            # Calculate session end time in minutes since midnight
+            session_start_minutes = int(session_time.split(":")[0]) * 60 + int(session_time.split(":")[1])
+            session_end_minutes = session_start_minutes + session_duration
+            
+            # Add buffer time before and after the session
+            buffer_start_minutes = max(0, session_start_minutes - buffer_time)
+            buffer_end_minutes = session_end_minutes + buffer_time
+            
+            # Remove all time slots that overlap with this session (including buffer)
+            slots_to_remove = []
+            for time_slot in availability[session_date_str]:
+                slot_hour, slot_minute = map(int, time_slot.split(":"))
+                slot_minutes = slot_hour * 60 + slot_minute
+                
+                # Check if this slot starts during the session or buffer period
+                if buffer_start_minutes <= slot_minutes < buffer_end_minutes:
+                    slots_to_remove.append(time_slot)
+                
+                # Check if this slot would create a session that overlaps with the existing session
+                # Assuming minimum session duration is 30 minutes
+                if slot_minutes + 30 > buffer_start_minutes and slot_minutes < buffer_end_minutes:
+                    slots_to_remove.append(time_slot)
+            
+            # Remove the identified slots
+            for slot in slots_to_remove:
+                if slot in availability[session_date_str]:
+                    availability[session_date_str].remove(slot)
     
     # Remove dates with no available times
     availability = {date: times for date, times in availability.items() if times}
@@ -527,6 +613,10 @@ async def book_session(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Expert not found"
         )
+    
+    # If student_id is "current", use the current user's ID
+    if session.student_id == "current":
+        session.student_id = current_user["id"]
     
     # Verify student is booking for themselves
     if session.student_id != current_user["id"]:
@@ -742,6 +832,73 @@ async def update_session(
         updated_session["student_profile_image"] = student.get("profile_image")
     
     return updated_session
+
+@router.put("/sessions/{session_id}/confirm", response_model=dict)
+async def confirm_session(
+    session_id: str,
+    current_user: dict = Depends(require_role("student"))
+):
+    """
+    Confirm a session as completed
+    """
+    session = db.sessions.find_one({"_id": ObjectId(session_id)})
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found"
+        )
+    
+    # Verify student has access to this session
+    if session["student_id"] != current_user["id"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have access to this session"
+        )
+    
+    # Update session status
+    db.sessions.update_one(
+        {"_id": ObjectId(session_id)},
+        {
+            "$set": {
+                "status": "completed",
+                "updated_at": datetime.now(timezone.utc)
+            }
+        }
+    )
+    
+    # Update expert's completed_sessions count
+    db.experts.update_one(
+        {"_id": ObjectId(session["expert_id"])},
+        {"$inc": {"completed_sessions": 1}}
+    )
+    
+    # Process payment (in a real app, this would trigger a payment to the expert)
+    # For now, we'll just create a payment record
+    payment_data = {
+        "student_id": current_user["id"],
+        "expert_id": session["expert_id"],
+        "session_id": session_id,
+        "amount": calculate_session_cost(session),
+        "status": "completed",
+        "date": datetime.now(timezone.utc)
+    }
+    
+    db.payments.insert_one(payment_data)
+    
+    return {"message": "Session confirmed as completed successfully"}
+
+def calculate_session_cost(session):
+    """
+    Calculate the cost of a session based on expert's hourly rate and session duration
+    """
+    expert = db.experts.find_one({"_id": ObjectId(session["expert_id"])})
+    if not expert:
+        return 0
+    
+    hourly_rate = expert.get("hourly_rate", 45)
+    duration_hours = session.get("duration", 60) / 60  # Convert minutes to hours
+    
+    return hourly_rate * duration_hours
 
 @router.post("/bookmark/{expert_id}", response_model=dict)
 async def bookmark_expert(

@@ -145,12 +145,11 @@ export default function ScheduleLesson() {
     try {
       setLoadingAvailability(true)
 
-      // Get the start and end dates for the next 7 days
+      // Get the start and end dates for the next 14 days
       const startDate = new Date()
-      const endDate = addDays(startDate, 7)
+      const endDate = addDays(startDate, 14)
 
       // Use the main axios instance which already has auth headers set up
-      // Don't create a new instance which loses the auth headers
       let response = null
       let attempt = 0
       const maxAttempts = 3
@@ -175,16 +174,14 @@ export default function ScheduleLesson() {
           // If it's an auth error, no need to retry
           if (error.response && error.response.status === 401) {
             console.error("Authentication error. Please log in again.")
-            // Could redirect to login here if needed
             throw error
           }
 
           if (attempt >= maxAttempts) {
-            // If all attempts failed, throw the error to be caught by the outer try/catch
             throw error
           }
 
-          // Wait with exponential backoff before retrying (1s, 2s, 4s)
+          // Wait with exponential backoff before retrying
           await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt - 1) * 1000))
         }
       }
@@ -205,14 +202,14 @@ export default function ScheduleLesson() {
           setAvailableTimes(response.data.availability[dates[0]])
         }
       } else {
-        // Generate demo availability data if no real data is available
-        generateDemoAvailability()
-
+        // If no availability data is returned, show a message
         toast({
-          title: "No availability data",
-          description: "Using demo availability data instead.",
+          title: "No availability",
+          description: "This tutor has no available time slots in the next 14 days. They may be fully booked or haven't set their availability yet.",
           variant: "default",
         })
+        setAvailability({})
+        setAvailableDates([])
       }
     } catch (error: any) {
       console.error("Error fetching expert availability:", error)
@@ -224,19 +221,16 @@ export default function ScheduleLesson() {
           description: "Your session may have expired. Please log in again.",
           variant: "destructive",
         })
-
-        // Optionally redirect to login
-        // router.push("/auth/login")
       } else {
         toast({
           title: "Error loading availability",
-          description: "Using demo data instead. Please try again later.",
-          variant: "default",
+          description: "Could not load tutor's availability. Please try again later.",
+          variant: "destructive",
         })
       }
 
-      // Generate demo availability data
-      generateDemoAvailability()
+      setAvailability({})
+      setAvailableDates([])
     } finally {
       setLoadingAvailability(false)
     }
@@ -342,7 +336,7 @@ export default function ScheduleLesson() {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       )
 
       toast({
@@ -354,7 +348,7 @@ export default function ScheduleLesson() {
       router.push(`/dashboard/student/lessons/${response.data.session_id}`)
     } catch (error: any) {
       console.error("Error scheduling lesson:", error)
-      
+
       // More detailed error handling
       if (error.response) {
         // The request was made and the server responded with a status code
@@ -509,6 +503,15 @@ export default function ScheduleLesson() {
                   {/* Date Selection */}
                   <div className="mb-6">
                     <h3 className="mb-3 font-medium">Available Dates</h3>
+                    {availableDates.length === 0 && !loadingAvailability && (
+                      <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-center">
+                        <AlertCircle className="mx-auto mb-2 h-6 w-6 text-amber-500" />
+                        <p className="text-amber-800">This tutor has no available time slots in the next 14 days.</p>
+                        <p className="mt-2 text-sm text-amber-700">
+                          Try checking back later or contact the tutor directly.
+                        </p>
+                      </div>
+                    )}
                     {availableDates.length > 0 ? (
                       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
                         {availableDates.map((dateStr) => {
@@ -571,6 +574,19 @@ export default function ScheduleLesson() {
                             <p className="text-gray-500">No available times for this date.</p>
                           </div>
                         )}
+                        
+                        <div className="mt-4 rounded-md border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800">
+                          <div className="flex items-start">
+                            <AlertCircle className="mr-2 mt-0.5 h-4 w-4 text-blue-500" />
+                            <div>
+                              <p className="font-medium">About available time slots</p>
+                              <p className="mt-1">
+                                Only times when the tutor is available are shown. Times when they already have sessions 
+                                scheduled (including buffer time before and after) are automatically removed.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                       </motion.div>
                     </AnimatePresence>
                   ) : (
