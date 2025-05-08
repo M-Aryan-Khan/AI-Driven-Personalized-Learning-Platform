@@ -99,9 +99,9 @@ export default function FindTutors() {
   return (
     <div className="container mx-auto max-w-6xl">
       <div className="mb-8">
-        <h1 className="mb-6 text-3xl font-bold text-deep-cocoa">Find Tutors</h1>
+        <h1 className="text-3xl font-bold text-deep-cocoa">Find Tutors</h1>
 
-        <div className="mb-6 flex flex-col gap-4 md:flex-row">
+        <div className="mb-6 flex flex-col gap-4 md:flex-row items-center">
           <div className="flex-1">
             <div className="relative">
               <Input

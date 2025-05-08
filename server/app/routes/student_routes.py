@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Body
 from typing import List, Optional
 from datetime import datetime, timezone
 from bson import ObjectId
@@ -7,28 +7,16 @@ from ..models.student import StudentUpdate, StudentProfile
 from ..models.expert import ExpertSearchResult, ExpertProfile
 from ..models.session import SessionCreate, SessionResponse, SessionUpdate
 from ..models.message import MessageCreate, MessageResponse, ConversationResponse
+from ..models.payment import PaymentMethod, PaymentHistory
 from ..utils.auth import get_current_active_user, require_role
 from ..utils.email import send_session_confirmation_email
+from ..utils.hash import verify_password, hash_password
 from ..db.mongo import db
-from pydantic import BaseModel
-
-from ..utils.hash import (
-    hash_password, 
-    verify_password
-    
-)
 
 router = APIRouter(
     prefix="/api/students",
     tags=["Students"],
 )
-
-class DeleteAccountRequest(BaseModel):
-    password: str
-class ChangePasswordRequest(BaseModel):
-    current_password: str
-    new_password: str
-
 
 @router.get("/profile", response_model=StudentProfile)
 async def get_student_profile(current_user: dict = Depends(require_role("student"))):
@@ -55,37 +43,37 @@ async def update_student_profile(
     """
     Update student profile
     """
+    # Filter out None values
     update_data = {k: v for k, v in profile_update.dict().items() if v is not None}
-
+    
     if not update_data:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No data to update"
         )
     
-    # Convert comma-separated strings to list (if mistakenly sent that way)
-    for key in ["learning_goals", "preferred_languages"]:
-        if key in update_data and isinstance(update_data[key], str):
-            update_data[key] = [item.strip() for item in update_data[key].split(",") if item.strip()]
-
+    # Add updated_at timestamp
     update_data["updated_at"] = datetime.now(timezone.utc)
-
+    
+    # Update student
     result = db.students.update_one(
         {"_id": ObjectId(current_user["id"])},
         {"$set": update_data}
     )
-
+    
     if result.modified_count == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Student not found"
         )
-
+    
+    # Get updated student
     updated_student = db.students.find_one({"_id": ObjectId(current_user["id"])})
+    
+    # Convert ObjectId to string
     updated_student["id"] = str(updated_student["_id"])
-
+    
     return updated_student
-
 
 @router.post("/profile/image", response_model=dict)
 async def upload_profile_image(
@@ -120,6 +108,211 @@ async def upload_profile_image(
     
     return {"message": "Profile image uploaded successfully", "image_url": image_url}
 
+@router.put("/change-password", response_model=dict)
+async def change_password(
+    current_password: str = Body(...),
+    new_password: str = Body(...),
+    current_user: dict = Depends(require_role("student"))
+):
+    """
+    Change student password
+    """
+    # Get student
+    student = db.students.find_one({"_id": ObjectId(current_user["id"])})
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found"
+        )
+    
+    # Verify current password
+    if not verify_password(current_password, student["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect password"
+        )
+    
+    # Update password
+    hashed_password = hash_password(new_password)
+    db.students.update_one(
+        {"_id": ObjectId(current_user["id"])},
+        {"$set": {"hashed_password": hashed_password}}
+    )
+    
+    return {"message": "Password updated successfully"}
+
+@router.delete("/delete-account", response_model=dict)
+async def delete_account(
+    password: str = Body(..., embed=True),
+    current_user: dict = Depends(require_role("student"))
+):
+    """
+    Delete student account
+    """
+    # Get student
+    student = db.students.find_one({"_id": ObjectId(current_user["id"])})
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found"
+        )
+    
+    # Verify password
+    if not verify_password(password, student["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect password"
+        )
+    
+    # Delete student
+    db.students.delete_one({"_id": ObjectId(current_user["id"])})
+    
+    # Delete related data
+    db.sessions.delete_many({"student_id": current_user["id"]})
+    db.conversations.delete_many({"participants": current_user["id"]})
+    db.messages.delete_many({"sender_id": current_user["id"]})
+    
+    return {"message": "Account deleted successfully"}
+
+@router.get("/payment-methods", response_model=List[PaymentMethod])
+async def get_payment_methods(current_user: dict = Depends(require_role("student"))):
+    """
+    Get student payment methods
+    """
+    # Get student
+    student = db.students.find_one({"_id": ObjectId(current_user["id"])})
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found"
+        )
+    
+    # Get payment methods
+    payment_methods = student.get("payment_methods", [])
+    
+    return payment_methods
+
+@router.post("/payment-methods", response_model=PaymentMethod)
+async def add_payment_method(
+    payment_method: PaymentMethod,
+    current_user: dict = Depends(require_role("student"))
+):
+    """
+    Add a payment method
+    """
+    # Generate a unique ID for the payment method
+    payment_method_id = str(ObjectId())
+    payment_method.id = payment_method_id
+    
+    # Add created_at timestamp
+    payment_method.created_at = datetime.now(timezone.utc)
+    
+    # Check if this should be the default payment method
+    is_default = payment_method.is_default
+    
+    # First, check if the payment_methods array exists
+    student = db.students.find_one({"_id": ObjectId(current_user["id"])})
+    if not student or "payment_methods" not in student:
+        # Initialize the payment_methods array with this payment method
+        db.students.update_one(
+            {"_id": ObjectId(current_user["id"])},
+            {"$set": {"payment_methods": [payment_method.dict()]}}
+        )
+    else:
+        # If this is the default, unset any existing default
+        if is_default:
+            db.students.update_one(
+                {"_id": ObjectId(current_user["id"])},
+                {"$set": {"payment_methods.$[].is_default": False}}
+            )
+        
+        # Add payment method to student
+        db.students.update_one(
+            {"_id": ObjectId(current_user["id"])},
+            {"$push": {"payment_methods": payment_method.dict()}}
+        )
+    
+    return payment_method
+
+@router.delete("/payment-methods/{payment_method_id}", response_model=dict)
+async def delete_payment_method(
+    payment_method_id: str,
+    current_user: dict = Depends(require_role("student"))
+):
+    """
+    Delete a payment method
+    """
+    # Remove payment method from student
+    db.students.update_one(
+        {"_id": ObjectId(current_user["id"])},
+        {"$pull": {"payment_methods": {"id": payment_method_id}}}
+    )
+    
+    return {"message": "Payment method deleted successfully"}
+
+@router.put("/payment-methods/{payment_method_id}/default", response_model=dict)
+async def set_default_payment_method(
+    payment_method_id: str,
+    current_user: dict = Depends(require_role("student"))
+):
+    """
+    Set a payment method as default
+    """
+    # Unset any existing default
+    db.students.update_one(
+        {"_id": ObjectId(current_user["id"])},
+        {"$set": {"payment_methods.$[].is_default": False}}
+    )
+    
+    # Set the specified payment method as default
+    db.students.update_one(
+        {"_id": ObjectId(current_user["id"]), "payment_methods.id": payment_method_id},
+        {"$set": {"payment_methods.$.is_default": True}}
+    )
+    
+    return {"message": "Default payment method updated successfully"}
+
+@router.get("/payment-history", response_model=List[PaymentHistory])
+async def get_payment_history(current_user: dict = Depends(require_role("student"))):
+    """
+    Get student payment history
+    """
+    # Get payment history
+    payment_history = list(db.payments.find({"student_id": current_user["id"]}).sort("date", -1))
+    
+    # Convert ObjectId to string
+    for payment in payment_history:
+        payment["id"] = str(payment["_id"])
+    
+    return payment_history
+
+@router.put("/notifications", response_model=dict)
+async def update_notification_settings(
+    email_notifications: bool = Body(...),
+    sms_notifications: bool = Body(...),
+    marketing_emails: bool = Body(...),
+    current_user: dict = Depends(require_role("student"))
+):
+    """
+    Update notification settings
+    """
+    # Update notification settings
+    db.students.update_one(
+        {"_id": ObjectId(current_user["id"])},
+        {
+            "$set": {
+                "notification_settings": {
+                    "email_notifications": email_notifications,
+                    "sms_notifications": sms_notifications,
+                    "marketing_emails": marketing_emails
+                },
+                "updated_at": datetime.now(timezone.utc)
+            }
+        }
+    )
+    
+    return {"message": "Notification settings updated successfully"}
+
 @router.get("/experts", response_model=List[ExpertSearchResult])
 async def search_experts(
     specialty: Optional[str] = None,
@@ -127,7 +320,7 @@ async def search_experts(
     min_rate: Optional[float] = None,
     max_rate: Optional[float] = None,
     min_rating: Optional[float] = None,
-    # current_user: dict = Depends(require_role("student"))
+    current_user: dict = Depends(require_role("student"))
 ):
     """
     Search for experts
@@ -642,68 +835,3 @@ async def send_message(
     }
     
     return created_message
-
-@router.put("/change-password", response_model=dict)
-async def change_password(
-    payload: ChangePasswordRequest,
-    current_user: dict = Depends(require_role("student"))
-):
-    """
-    Change student password
-    """
-    
-    # Get student
-    student = db.students.find_one({"_id": ObjectId(current_user["id"])})
-    if not student:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Student not found"
-        )
-    
-    # Verify current password
-    if not verify_password(payload.current_password, student["password"]):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect password"
-        )
-    
-    # Update password
-    print(payload.new_password)
-    hashed_password = hash_password(payload.new_password)
-    print(hashed_password)
-    db.students.update_one(
-        {"_id": ObjectId(current_user["id"])},
-        {"$set": {"password": hashed_password}}
-    )
-    
-    return {"message": "Password updated successfully"}
-
-
-@router.delete("/delete-account", response_model=dict)
-async def delete_account(
-    payload: DeleteAccountRequest,
-    current_user: dict = Depends(require_role("student"))
-):
-    """
-    Delete student account after verifying password
-    """
-
-    # Get student
-    student = db.students.find_one({"_id": ObjectId(current_user["id"])})
-    if not student:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Student not found"
-        )
-
-    # Verify password
-    if not verify_password(payload.password, student["password"]):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect password"
-        )
-
-    # Delete account
-    db.students.delete_one({"_id": ObjectId(current_user["id"])})
-
-    return {"message": "Account deleted successfully"}
