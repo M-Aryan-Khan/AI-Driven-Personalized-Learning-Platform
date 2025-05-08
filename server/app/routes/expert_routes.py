@@ -102,6 +102,32 @@ async def upload_profile_image(
     
     return {"message": "Profile image uploaded successfully", "image_url": image_url}
 
+@router.put("/profile/complete", response_model=dict)
+async def mark_profile_completed(
+    current_user: dict = Depends(require_role("expert"))
+):
+    """
+    Mark expert profile as completed
+    """
+    # Update expert
+    result = db.experts.update_one(
+        {"_id": ObjectId(current_user["id"])},
+        {
+            "$set": {
+                "is_profile_completed": True,
+                "updated_at": datetime.now(timezone.utc)
+            }
+        }
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Expert not found"
+        )
+    
+    return {"message": "Profile marked as completed successfully"}
+
 @router.get("/sessions", response_model=List[SessionResponse])
 async def get_expert_sessions(
     status: Optional[str] = None,
@@ -499,6 +525,77 @@ async def get_expert_stats(
         "estimated_earnings": estimated_earnings
     }
 
+@router.get("/availability", response_model=dict)
+async def get_availability(
+    current_user: dict = Depends(require_role("expert"))
+):
+    """
+    Get expert availability
+    """
+    # Get expert
+    expert = db.experts.find_one({"_id": ObjectId(current_user["id"])})
+    if not expert:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Expert not found"
+        )
+    
+    # Initialize default availability if not present
+    if "availability" not in expert:
+        return {
+            "weeklySchedule": [
+                {"day": "Monday", "startTime": "09:00", "endTime": "17:00"},
+                {"day": "Tuesday", "startTime": "09:00", "endTime": "17:00"},
+                {"day": "Wednesday", "startTime": "09:00", "endTime": "17:00"},
+                {"day": "Thursday", "startTime": "09:00", "endTime": "17:00"},
+                {"day": "Friday", "startTime": "09:00", "endTime": "17:00"}
+            ],
+            "blockedDates": [],
+            "settings": {
+                "timezone": "UTC",
+                "bufferTime": 15,
+                "maxSessionsPerDay": 5,
+                "autoAccept": False
+            }
+        }
+    
+    # Return availability data
+    availability_data = expert.get("availability", {})
+    
+    # Ensure the structure is correct
+    if not isinstance(availability_data, dict):
+        availability_data = {}
+    
+    # Ensure weeklySchedule exists and is a list
+    if "weeklySchedule" not in availability_data or not isinstance(availability_data["weeklySchedule"], list):
+        availability_data["weeklySchedule"] = [
+            {"day": "Monday", "startTime": "09:00", "endTime": "17:00"},
+            {"day": "Tuesday", "startTime": "09:00", "endTime": "17:00"},
+            {"day": "Wednesday", "startTime": "09:00", "endTime": "17:00"},
+            {"day": "Thursday", "startTime": "09:00", "endTime": "17:00"},
+            {"day": "Friday", "startTime": "09:00", "endTime": "17:00"}
+        ]
+    
+    # Ensure blockedDates exists and is a list
+    if "blockedDates" not in availability_data or not isinstance(availability_data["blockedDates"], list):
+        availability_data["blockedDates"] = []
+    
+    # Ensure settings exists and is a dict
+    if "settings" not in availability_data or not isinstance(availability_data["settings"], dict):
+        availability_data["settings"] = {
+            "timezone": "UTC",
+            "bufferTime": 15,
+            "maxSessionsPerDay": 5,
+            "autoAccept": False
+        }
+    
+    # Remove isRecurring field from time slots to simplify
+    for slot in availability_data["weeklySchedule"]:
+        if "isRecurring" in slot:
+            del slot["isRecurring"]
+    
+    return availability_data
+
 @router.put("/availability", response_model=dict)
 async def update_availability(
     availability: Dict,
@@ -507,6 +604,12 @@ async def update_availability(
     """
     Update expert availability
     """
+    # Remove isRecurring field from time slots to simplify
+    if "weeklySchedule" in availability and isinstance(availability["weeklySchedule"], list):
+        for slot in availability["weeklySchedule"]:
+            if "isRecurring" in slot:
+                del slot["isRecurring"]
+    
     # Update expert
     db.experts.update_one(
         {"_id": ObjectId(current_user["id"])},
@@ -519,3 +622,224 @@ async def update_availability(
     )
     
     return {"message": "Availability updated successfully"}
+
+@router.get("/earnings", response_model=dict)
+async def get_expert_earnings(
+    timeFilter: str = "this_month",
+    current_user: dict = Depends(require_role("expert"))
+):
+    """
+    Get expert earnings
+    """
+    from datetime import datetime, timedelta
+    
+    # Get current date
+    now = datetime.now(timezone.utc)
+    
+    # Define date ranges based on timeFilter
+    if timeFilter == "this_month":
+        start_date = datetime(now.year, now.month, 1, tzinfo=timezone.utc)
+    elif timeFilter == "last_month":
+        if now.month == 1:
+            start_date = datetime(now.year - 1, 12, 1, tzinfo=timezone.utc)
+        else:
+            start_date = datetime(now.year, now.month - 1, 1, tzinfo=timezone.utc)
+        end_date = datetime(now.year, now.month, 1, tzinfo=timezone.utc)
+    elif timeFilter == "this_year":
+        start_date = datetime(now.year, 1, 1, tzinfo=timezone.utc)
+    else:  # all_time
+        start_date = datetime(2000, 1, 1, tzinfo=timezone.utc)
+    
+    # Set end date for last_month filter
+    if timeFilter == "last_month":
+        query_date = {"$gte": start_date, "$lt": end_date}
+    else:
+        query_date = {"$gte": start_date}
+    
+    # Get sessions for the expert
+    sessions = list(db.sessions.find({
+        "expert_id": current_user["id"],
+        "date": query_date
+    }).sort("date", -1))
+    
+    # Calculate earnings
+    earnings = []
+    total_earnings = 0
+    pending_earnings = 0
+    paid_earnings = 0
+    
+    for session in sessions:
+        # Get student info
+        student = db.students.find_one({"_id": ObjectId(session["student_id"])})
+        student_name = f"{student['first_name']} {student['last_name']}" if student else "Unknown Student"
+        
+        # Calculate amount based on session duration and expert hourly rate
+        expert = db.experts.find_one({"_id": ObjectId(current_user["id"])})
+        hourly_rate = expert.get("hourly_rate", 45)
+        duration_hours = session.get("duration", 60) / 60  # Convert minutes to hours
+        amount = hourly_rate * duration_hours
+        
+        # Determine status
+        if session["status"] == "completed":
+            status = "paid"
+            paid_earnings += amount
+        elif session["status"] == "cancelled":
+            status = "cancelled"
+        else:
+            status = "pending"
+            pending_earnings += amount
+        
+        if status != "cancelled":
+            total_earnings += amount
+        
+        # Add to earnings list
+        earnings.append({
+            "id": str(session["_id"]),
+            "session_id": str(session["_id"]),
+            "student_name": student_name,
+            "date": session["date"].isoformat(),
+            "amount": amount,
+            "status": status,
+            "payout_date": (session["date"] + timedelta(days=7)).isoformat() if status == "paid" else None
+        })
+    
+    # Return earnings data
+    return {
+        "earnings": earnings,
+        "stats": {
+            "total_earnings": total_earnings,
+            "pending_earnings": pending_earnings,
+            "paid_earnings": paid_earnings,
+            "total_sessions": len([e for e in earnings if e["status"] != "cancelled"])
+        }
+    }
+
+@router.get("/earnings/statement", response_model=dict)
+async def get_earnings_statement(
+    timeFilter: str = "this_month",
+    current_user: dict = Depends(require_role("expert"))
+):
+    """
+    Generate earnings statement PDF
+    """
+    # In a real implementation, this would generate a PDF
+    # For now, we'll just return a success message
+    
+    return {"message": "Statement generated successfully"}
+
+@router.get("/payment-methods", response_model=List[dict])
+async def get_payment_methods(
+    current_user: dict = Depends(require_role("expert"))
+):
+    """
+    Get expert payment methods
+    """
+    # Find payment methods
+    payment_methods = list(db.payment_methods.find({"expert_id": current_user["id"]}))
+    
+    # Convert ObjectId to string
+    for method in payment_methods:
+        method["id"] = str(method["_id"])
+        del method["_id"]
+    
+    return payment_methods
+
+@router.post("/payment-methods", response_model=dict)
+async def add_payment_method(
+    payment_method: dict,
+    current_user: dict = Depends(require_role("expert"))
+):
+    """
+    Add a payment method
+    """
+    # If this is set as default, unset any existing default
+    if payment_method.get("is_default", False):
+        db.payment_methods.update_many(
+            {"expert_id": current_user["id"]},
+            {"$set": {"is_default": False}}
+        )
+    
+    # Add expert_id to payment method
+    payment_method["expert_id"] = current_user["id"]
+    payment_method["created_at"] = datetime.now(timezone.utc)
+    
+    # Insert payment method
+    result = db.payment_methods.insert_one(payment_method)
+    
+    return {
+        "id": str(result.inserted_id),
+        "message": "Payment method added successfully"
+    }
+
+@router.put("/payment-methods/{payment_method_id}/default", response_model=dict)
+async def set_default_payment_method(
+    payment_method_id: str,
+    current_user: dict = Depends(require_role("expert"))
+):
+    """
+    Set a payment method as default
+    """
+    # Verify payment method exists and belongs to expert
+    payment_method = db.payment_methods.find_one({
+        "_id": ObjectId(payment_method_id),
+        "expert_id": current_user["id"]
+    })
+    
+    if not payment_method:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Payment method not found"
+        )
+    
+    # Unset any existing default
+    db.payment_methods.update_many(
+        {"expert_id": current_user["id"]},
+        {"$set": {"is_default": False}}
+    )
+    
+    # Set this payment method as default
+    db.payment_methods.update_one(
+        {"_id": ObjectId(payment_method_id)},
+        {"$set": {"is_default": True}}
+    )
+    
+    return {"message": "Default payment method updated successfully"}
+
+@router.delete("/payment-methods/{payment_method_id}", response_model=dict)
+async def delete_payment_method(
+    payment_method_id: str,
+    current_user: dict = Depends(require_role("expert"))
+):
+    """
+    Delete a payment method
+    """
+    # Verify payment method exists and belongs to expert
+    payment_method = db.payment_methods.find_one({
+        "_id": ObjectId(payment_method_id),
+        "expert_id": current_user["id"]
+    })
+    
+    if not payment_method:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Payment method not found"
+        )
+    
+    # Check if this is the default payment method
+    if payment_method.get("is_default", False):
+        # Find another payment method to set as default
+        other_method = db.payment_methods.find_one({
+            "expert_id": current_user["id"],
+            "_id": {"$ne": ObjectId(payment_method_id)}
+        })
+        
+        if other_method:
+            db.payment_methods.update_one(
+                {"_id": other_method["_id"]},
+                {"$set": {"is_default": True}}
+            )
+    
+    # Delete payment method
+    db.payment_methods.delete_one({"_id": ObjectId(payment_method_id)})
+    
+    return {"message": "Payment method deleted successfully"}

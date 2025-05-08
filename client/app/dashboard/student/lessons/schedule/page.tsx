@@ -19,12 +19,10 @@ import {
   startOfWeek,
   endOfWeek,
   eachDayOfInterval,
-  isSameDay,
-  isToday,
   isPast,
-  isFuture,
+  parseISO,
 } from "date-fns"
-import { CalendarIcon, Clock, CreditCard, CheckCircle, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react"
+import { CalendarIcon, Clock, CreditCard, CheckCircle, AlertCircle } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
 
 type Expert = {
@@ -35,7 +33,6 @@ type Expert = {
   specialty: string
   hourly_rate: number
   rating: number
-  availability?: Record<string, string[]>
 }
 
 type PaymentMethod = {
@@ -45,6 +42,10 @@ type PaymentMethod = {
   expiry_date?: string
   is_default?: boolean
   card_type?: string
+}
+
+type Availability = {
+  [date: string]: string[] // date in format YYYY-MM-DD, array of times in format HH:MM
 }
 
 export default function ScheduleLesson() {
@@ -64,8 +65,9 @@ export default function ScheduleLesson() {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | undefined>(undefined)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [weekAvailability, setWeekAvailability] = useState<Record<string, string[]>>({})
+  const [availability, setAvailability] = useState<Availability>({})
   const [loadingAvailability, setLoadingAvailability] = useState(false)
+  const [availableDates, setAvailableDates] = useState<string[]>([])
 
   useEffect(() => {
     const expertId = searchParams.get("expert")
@@ -107,20 +109,21 @@ export default function ScheduleLesson() {
           setPaymentMethods([])
         }
 
+        // Fetch availability for the expert
+        await fetchExpertAvailability(expertId)
+
         // Set date and time if provided in URL
         if (dateParam && timeParam) {
-          const parsedDate = new Date(dateParam)
+          const parsedDate = parseISO(dateParam)
           setSelectedDate(parsedDate)
           setSelectedTime(timeParam)
 
           // Update available times for the selected date
-          if (expertResponse.data.availability && expertResponse.data.availability[dateParam]) {
-            setAvailableTimes(expertResponse.data.availability[dateParam])
+          const formattedDate = format(parsedDate, "yyyy-MM-dd")
+          if (availability[formattedDate]) {
+            setAvailableTimes(availability[formattedDate])
           }
         }
-
-        // Fetch availability for the current week
-        await fetchWeekAvailability(expertId, currentWeekStart)
       } catch (error) {
         console.error("Error fetching data:", error)
         toast({
@@ -134,48 +137,138 @@ export default function ScheduleLesson() {
     }
 
     fetchData()
-  }, [searchParams, toast, router, currentWeekStart])
+  }, [searchParams, toast, router])
 
-  const fetchWeekAvailability = async (expertId: string, weekStart: Date) => {
+  const fetchExpertAvailability = async (expertId: string) => {
     try {
       setLoadingAvailability(true)
-      const weekDates = eachDayOfInterval({
-        start: weekStart,
-        end: endOfWeek(weekStart, { weekStartsOn: 0 }),
-      })
 
-      // In a real implementation, you would fetch this from the API
-      // For now, we'll use the expert's availability data that we already have
-      if (expert?.availability) {
-        const weekAvail: Record<string, string[]> = {}
+      // Get the start and end dates for the next 7 days
+      const startDate = new Date()
+      const endDate = addDays(startDate, 7)
 
-        weekDates.forEach((date) => {
-          const dateStr = format(date, "yyyy-MM-dd")
-          if (expert.availability && expert.availability[dateStr]) {
-            weekAvail[dateStr] = expert.availability[dateStr]
-          } else {
-            // Generate some random availability for demo purposes
-            if (isFuture(date)) {
-              const times = []
-              const startHour = 9 + Math.floor(Math.random() * 3) // 9, 10, or 11
-              for (let i = 0; i < 3 + Math.floor(Math.random() * 4); i++) {
-                // 3-6 slots
-                const hour = startHour + i
-                times.push(`${hour.toString().padStart(2, "0")}:00`)
-              }
-              weekAvail[dateStr] = times
-            } else {
-              weekAvail[dateStr] = []
-            }
+      // Use the main axios instance which already has auth headers set up
+      // Don't create a new instance which loses the auth headers
+      let response = null
+      let attempt = 0
+      const maxAttempts = 3
+
+      while (attempt < maxAttempts) {
+        try {
+          // Use the main axios instance that already has auth headers
+          response = await axios.get(`/api/students/experts/${expertId}/availability`, {
+            params: {
+              start_date: format(startDate, "yyyy-MM-dd"),
+              end_date: format(endDate, "yyyy-MM-dd"),
+            },
+            timeout: 60000, // 60 seconds timeout
+          })
+          
+          // If successful, break out of the retry loop
+          break
+        } catch (error: any) {
+          attempt++
+          console.error(`Attempt ${attempt} failed:`, error.message)
+          
+          // If it's an auth error, no need to retry
+          if (error.response && error.response.status === 401) {
+            console.error("Authentication error. Please log in again.")
+            // Could redirect to login here if needed
+            throw error
           }
-        })
+          
+          if (attempt >= maxAttempts) {
+            // If all attempts failed, throw the error to be caught by the outer try/catch
+            throw error
+          }
 
-        setWeekAvailability(weekAvail)
+          // Wait with exponential backoff before retrying (1s, 2s, 4s)
+          await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt - 1) * 1000))
+        }
       }
-    } catch (error) {
-      console.error("Error fetching week availability:", error)
+
+      if (response && response.data && response.data.availability) {
+        setAvailability(response.data.availability)
+
+        // Extract available dates
+        const dates = Object.keys(response.data.availability).sort()
+        setAvailableDates(dates)
+
+        // If we have dates and no date is selected yet, select the first available date
+        if (dates.length > 0 && !selectedDate) {
+          const firstDate = parseISO(dates[0])
+          setSelectedDate(firstDate)
+
+          // Set available times for this date
+          setAvailableTimes(response.data.availability[dates[0]])
+        }
+      } else {
+        // Generate demo availability data if no real data is available
+        generateDemoAvailability()
+        
+        toast({
+          title: "No availability data",
+          description: "Using demo availability data instead.",
+          variant: "default",
+        })
+      }
+    } catch (error: any) {
+      console.error("Error fetching expert availability:", error)
+      
+      // Check if it's an authentication error
+      if (error.response && error.response.status === 401) {
+        toast({
+          title: "Authentication error",
+          description: "Your session may have expired. Please log in again.",
+          variant: "destructive",
+        })
+        
+        // Optionally redirect to login
+        // router.push("/auth/login")
+      } else {
+        toast({
+          title: "Error loading availability",
+          description: "Using demo data instead. Please try again later.",
+          variant: "default",
+        })
+      }
+
+      // Generate demo availability data
+      generateDemoAvailability()
     } finally {
       setLoadingAvailability(false)
+    }
+  }
+
+  // Helper function to generate demo availability data
+  const generateDemoAvailability = () => {
+    const demoAvailability: Availability = {}
+    const startDate = new Date()
+
+    // Add some demo time slots for the next 7 days
+    for (let i = 1; i <= 7; i++) {
+      const date = addDays(startDate, i)
+      // Skip weekends in the demo
+      if (date.getDay() !== 0 && date.getDay() !== 6) {
+        const dateStr = format(date, "yyyy-MM-dd")
+        demoAvailability[dateStr] = []
+
+        // Add time slots from 9 AM to 5 PM
+        for (let hour = 9; hour < 17; hour++) {
+          demoAvailability[dateStr].push(`${hour.toString().padStart(2, "0")}:00`)
+          demoAvailability[dateStr].push(`${hour.toString().padStart(2, "0")}:30`)
+        }
+      }
+    }
+
+    setAvailability(demoAvailability)
+    const dates = Object.keys(demoAvailability).sort()
+    setAvailableDates(dates)
+
+    if (dates.length > 0) {
+      const firstDate = parseISO(dates[0])
+      setSelectedDate(firstDate)
+      setAvailableTimes(demoAvailability[dates[0]])
     }
   }
 
@@ -183,14 +276,18 @@ export default function ScheduleLesson() {
   useEffect(() => {
     if (selectedDate) {
       const dateString = format(selectedDate, "yyyy-MM-dd")
-      if (weekAvailability[dateString]) {
-        setAvailableTimes(weekAvailability[dateString])
+      if (availability[dateString]) {
+        setAvailableTimes(availability[dateString])
+        // If there are available times and none is selected, select the first one
+        if (availability[dateString].length > 0 && !selectedTime) {
+          setSelectedTime(availability[dateString][0])
+        }
       } else {
         setAvailableTimes([])
+        setSelectedTime(undefined)
       }
-      setSelectedTime(undefined)
     }
-  }, [selectedDate, weekAvailability])
+  }, [selectedDate, availability])
 
   const handleSubmit = async () => {
     if (!expert || !selectedDate || !selectedTime || !topic || !selectedPaymentMethod) {
@@ -287,7 +384,7 @@ export default function ScheduleLesson() {
   // Handle date selection
   const handleDateClick = (date: Date) => {
     const dateString = format(date, "yyyy-MM-dd")
-    if (weekAvailability[dateString] && weekAvailability[dateString].length > 0) {
+    if (availability[dateString] && availability[dateString].length > 0) {
       setSelectedDate(date)
     }
   }
@@ -295,7 +392,7 @@ export default function ScheduleLesson() {
   // Check if a date has availability
   const hasAvailability = (date: Date) => {
     const dateString = format(date, "yyyy-MM-dd")
-    return weekAvailability[dateString] && weekAvailability[dateString].length > 0
+    return availability[dateString] && availability[dateString].length > 0
   }
 
   if (loading) {
@@ -317,8 +414,8 @@ export default function ScheduleLesson() {
 
   if (!expert) {
     return (
-      <div className="container mx-auto max-w-6xl py-4">
-        <div className="rounded-lg border border-gray-200 bg-white px-8 text-center shadow">
+      <div className="container mx-auto max-w-6xl py-8">
+        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center shadow">
           <h3 className="mb-2 text-xl font-semibold text-deep-cocoa">Expert not found</h3>
           <p className="text-gray-500">The expert you're looking for doesn't exist or has been removed.</p>
           <Button
@@ -333,7 +430,7 @@ export default function ScheduleLesson() {
   }
 
   return (
-    <div className="container mx-auto max-w-6xl">
+    <div className="container mx-auto max-w-6xl py-8">
       <h1 className="mb-6 text-3xl font-bold text-deep-cocoa">Schedule a Lesson</h1>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -343,103 +440,88 @@ export default function ScheduleLesson() {
               <CardTitle>Select Date & Time</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="mb-6">
-                <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-deep-cocoa">
-                    {format(currentWeekStart, "MMM d")} -{" "}
-                    {format(endOfWeek(currentWeekStart, { weekStartsOn: 0 }), "MMM d, yyyy")}
-                  </h3>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="icon" onClick={prevWeek} className="h-8 w-8 p-0">
-                      <span className="sr-only">Previous week</span>
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={nextWeek} className="h-8 w-8 p-0">
-                      <span className="sr-only">Next week</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-7 gap-1">
-                  {weekDays.map((day, index) => {
-                    const dateStr = format(day, "yyyy-MM-dd")
-                    const dayHasAvailability = hasAvailability(day)
-                    const isSelected = selectedDate && isSameDay(selectedDate, day)
-                    const isPastDay = isPast(day) && !isToday(day)
-
-                    return (
-                      <div key={index} className="text-center">
-                        <div className="mb-1 text-xs font-medium text-gray-500">{format(day, "EEE")}</div>
-                        <motion.div
-                          whileHover={!isPastDay && dayHasAvailability ? { scale: 1.1 } : {}}
-                          className={`
-                            mx-auto flex h-10 w-10 cursor-pointer items-center justify-center rounded-full
-                            ${isSelected ? "bg-[#ff9b7b] text-white" : ""}
-                            ${!isSelected && dayHasAvailability && !isPastDay ? "border border-[#ffc6a8] hover:bg-[#fff8f0]" : ""}
-                            ${isPastDay ? "cursor-not-allowed text-gray-300" : ""}
-                            ${isToday(day) && !isSelected ? "border border-[#ff9b7b] font-bold" : ""}
-                          `}
-                          onClick={() => !isPastDay && dayHasAvailability && handleDateClick(day)}
-                        >
-                          {format(day, "d")}
-                        </motion.div>
-                        {dayHasAvailability && !isPastDay && (
-                          <div className="mt-1 text-xs text-green-600">{weekAvailability[dateStr]?.length} slots</div>
-                        )}
-                        {!dayHasAvailability && !isPastDay && (
-                          <div className="mt-1 text-xs text-gray-400">No slots</div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-
               {loadingAvailability ? (
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-32 w-full" />
                   <Skeleton className="h-24 w-full" />
                 </div>
-              ) : selectedDate ? (
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={selectedDate.toString()}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <h3 className="mb-3 font-medium">Available Times for {format(selectedDate, "EEEE, MMMM d")}</h3>
-                    {availableTimes.length > 0 ? (
-                      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                        {availableTimes.map((time) => (
-                          <Button
-                            key={time}
-                            variant={selectedTime === time ? "default" : "outline"}
-                            className={
-                              selectedTime === time
-                                ? "bg-[#ff9b7b] text-white hover:bg-[#ff8a63]"
-                                : "border-[#ffc6a8] text-deep-cocoa hover:bg-[#fff2e7]"
-                            }
-                            onClick={() => setSelectedTime(time)}
-                          >
-                            {time}
-                          </Button>
-                        ))}
+              ) : (
+                <>
+                  {/* Date Selection */}
+                  <div className="mb-6">
+                    <h3 className="mb-3 font-medium">Available Dates</h3>
+                    {availableDates.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                        {availableDates.map((dateStr) => {
+                          const date = parseISO(dateStr)
+                          const isSelected = selectedDate && format(selectedDate, "yyyy-MM-dd") === dateStr
+
+                          return (
+                            <Button
+                              key={dateStr}
+                              variant={isSelected ? "default" : "outline"}
+                              className={
+                                isSelected
+                                  ? "bg-[#ff9b7b] text-white hover:bg-[#ff8a63]"
+                                  : "border-[#ffc6a8] text-deep-cocoa hover:bg-[#fff2e7]"
+                              }
+                              onClick={() => setSelectedDate(date)}
+                            >
+                              {format(date, "EEE, MMM d")}
+                            </Button>
+                          )
+                        })}
                       </div>
                     ) : (
                       <div className="rounded-md border border-gray-200 bg-gray-50 p-4 text-center">
-                        <p className="text-gray-500">No available times for this date.</p>
+                        <p className="text-gray-500">No available dates found.</p>
                       </div>
                     )}
-                  </motion.div>
-                </AnimatePresence>
-              ) : (
-                <div className="rounded-md border border-gray-200 bg-[#fff8f0] p-4 text-center">
-                  <AlertCircle className="mx-auto mb-2 h-6 w-6 text-[#ff9b7b]" />
-                  <p className="text-deep-cocoa">Please select a date to see available times</p>
-                </div>
+                  </div>
+
+                  {/* Time Selection */}
+                  {selectedDate ? (
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={selectedDate.toString()}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <h3 className="mb-3 font-medium">Available Times for {format(selectedDate, "EEEE, MMMM d")}</h3>
+                        {availableTimes.length > 0 ? (
+                          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                            {availableTimes.map((time) => (
+                              <Button
+                                key={time}
+                                variant={selectedTime === time ? "default" : "outline"}
+                                className={
+                                  selectedTime === time
+                                    ? "bg-[#ff9b7b] text-white hover:bg-[#ff8a63]"
+                                    : "border-[#ffc6a8] text-deep-cocoa hover:bg-[#fff2e7]"
+                                }
+                                onClick={() => setSelectedTime(time)}
+                              >
+                                {time}
+                              </Button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="rounded-md border border-gray-200 bg-gray-50 p-4 text-center">
+                            <p className="text-gray-500">No available times for this date.</p>
+                          </div>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  ) : (
+                    <div className="rounded-md border border-gray-200 bg-[#fff8f0] p-4 text-center">
+                      <AlertCircle className="mx-auto mb-2 h-6 w-6 text-[#ff9b7b]" />
+                      <p className="text-deep-cocoa">Please select a date to see available times</p>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
@@ -576,7 +658,7 @@ export default function ScheduleLesson() {
                           <p className="font-medium text-deep-cocoa">{method.card_type || "Credit Card"}</p>
                           <p className="text-sm text-gray-500">
                             {formatCardNumber(method.card_number)}
-                            {method.expiry_date && <span> • Expires {method.expiry_date}</span>}
+                            {method.expiry_date}
                           </p>
                         </div>
                         {selectedPaymentMethod === method.id && <CheckCircle className="h-5 w-5 text-[#ff9b7b]" />}

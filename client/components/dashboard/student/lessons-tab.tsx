@@ -6,6 +6,9 @@ import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { motion } from "framer-motion"
+import axios from "@/lib/axios"
+import { format } from "date-fns"
+import { Calendar, Clock } from 'lucide-react'
 
 type Session = {
   id: string
@@ -28,23 +31,38 @@ export default function LessonsTab() {
     const fetchSessions = async () => {
       try {
         setLoading(true)
-        // In a real app, this would be an API call
-        // const response = await axios.get("/api/students/sessions")
-        // setSessions(response.data)
-
-        // For development, use empty array or mock data
-        setSessions([])
+        const response = await axios.get("/api/students/sessions")
+        
+        if (response.data && response.data.length > 0) {
+          // Sort sessions by date (ascending)
+          const sortedSessions = response.data.sort((a: Session, b: Session) => 
+            new Date(a.date).getTime() - new Date(b.date).getTime()
+          )
+          
+          // Filter only future sessions with status "scheduled"
+          const upcomingSessions = sortedSessions.filter((session: Session) => 
+            new Date(session.date) > new Date() && session.status === "scheduled"
+          )
+          
+          setSessions(upcomingSessions)
+        } else {
+          setSessions([])
+        }
       } catch (error) {
-        // Silently handle error - don't show error messages
         console.error("Error fetching sessions:", error)
-        setSessions([]) // Set empty array instead of showing error
+        toast({
+          title: "Error",
+          description: "Failed to load your lessons. Please try again.",
+          variant: "destructive",
+        })
+        setSessions([])
       } finally {
         setLoading(false)
       }
     }
 
     fetchSessions()
-  }, [])
+  }, [toast])
 
   const handleScheduleLesson = () => {
     router.push("/dashboard/student/find-tutors")
@@ -112,19 +130,13 @@ export default function LessonsTab() {
                   <h3 className="font-semibold text-deep-cocoa">{session.expert_name}</h3>
                   <p className="text-sm text-gray-500">{session.topic}</p>
                   <div className="mt-1 flex items-center text-sm text-gray-500">
+                    <Calendar className="mr-1 h-4 w-4" />
                     <span className="mr-2">
-                      {new Date(session.date).toLocaleDateString(undefined, {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {format(new Date(session.date), "EEE, MMM d, yyyy")}
                     </span>
+                    <Clock className="mr-1 h-4 w-4" />
                     <span>
-                      {new Date(session.date).toLocaleTimeString(undefined, {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {format(new Date(session.date), "h:mm a")}
                     </span>
                     <span className="ml-2">({session.duration} min)</span>
                   </div>

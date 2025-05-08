@@ -6,7 +6,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 // Create axios instance with base URL
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -26,6 +26,21 @@ api.interceptors.request.use(
     return config
   },
   (error) => {
+    return Promise.reject(error)
+  },
+)
+
+// Add a response interceptor for error handling
+api.interceptors.response.use(
+  (response) => {
+    return response
+  },
+  (error) => {
+    // Handle timeout errors specifically
+    if (error.code === "ECONNABORTED" && error.message.includes("timeout")) {
+      console.error("Request timed out. Please try again later.")
+    }
+
     return Promise.reject(error)
   },
 )

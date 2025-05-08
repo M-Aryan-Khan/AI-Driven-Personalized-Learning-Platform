@@ -168,7 +168,7 @@ export default function ExpertProfile() {
 
   if (loading) {
     return (
-      <div className="container mx-auto max-w-6xl py-8">
+      <div className="container mx-auto max-w-6xl">
         <div className="animate-pulse">
           <div className="mb-8 flex flex-col gap-6 md:flex-row">
             <div className="h-48 w-48 rounded-lg bg-gray-200"></div>
@@ -191,7 +191,7 @@ export default function ExpertProfile() {
 
   if (!expert) {
     return (
-      <div className="container mx-auto max-w-6xl py-8">
+      <div className="container mx-auto max-w-6xl">
         <div className="rounded-lg border border-gray-200 bg-white p-8 text-center shadow">
           <h3 className="mb-2 text-xl font-semibold text-deep-cocoa">Tutor not found</h3>
           <p className="text-gray-500">The tutor you're looking for doesn't exist or has been removed.</p>
@@ -207,7 +207,7 @@ export default function ExpertProfile() {
   }
 
   return (
-    <div className="container mx-auto max-w-6xl py-8">
+    <div className="container mx-auto max-w-6xl">
       <div className="mb-8 flex flex-col gap-6 md:flex-row">
         <div className="md:w-1/3">
           <motion.div

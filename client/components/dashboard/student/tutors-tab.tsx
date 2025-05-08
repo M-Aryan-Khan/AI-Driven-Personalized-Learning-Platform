@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import axios from "@/lib/axios"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { MessageSquare, Star } from "lucide-react"
+import { MessageSquare, Star } from 'lucide-react'
 import { motion } from "framer-motion"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -19,7 +19,7 @@ type Expert = {
   rating: number
 }
 
-export default function TutorsTab() {
+export default function ExpertsTab() {
   const [experts, setExperts] = useState<Expert[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
@@ -29,9 +29,15 @@ export default function TutorsTab() {
       try {
         setLoading(true)
         const response = await axios.get("/api/students/bookmarks")
-        setExperts(response.data)
+        
+        if (response.data && Array.isArray(response.data)) {
+          setExperts(response.data)
+        } else {
+          setExperts([])
+        }
       } catch (error) {
         console.error("Error fetching bookmarked experts:", error)
+        setExperts([])
       } finally {
         setLoading(false)
       }
@@ -79,16 +85,16 @@ export default function TutorsTab() {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center p-8 text-center">
-          <h2 className="mb-2 text-xl font-bold text-deep-cocoa">No tutors yet</h2>
+          <h2 className="mb-2 text-xl font-bold text-deep-cocoa">No experts yet</h2>
           <p className="mb-6 text-gray-500">
-            You haven&apos;t saved any tutors yet. Find tutors and bookmark them to see them here.
+            You haven&apos;t saved any experts yet. Find experts and bookmark them to see them here.
           </p>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               className="bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289]"
               onClick={() => router.push("/dashboard/student/find-tutors")}
             >
-              Find tutors
+              Find experts
             </Button>
           </motion.div>
         </CardContent>

@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from "
 import { useRouter } from "next/navigation"
 import axios from "axios"
 
-// Update the User type to include profile_image
+// Update the User type to include expert-specific properties
 type User = {
   id: string
   email: string
@@ -15,8 +15,24 @@ type User = {
   profile_image?: string
   bio?: string
   time_zone?: string
+  // Student-specific properties
   learning_goals?: string[]
   preferred_languages?: string[]
+  // Expert-specific properties
+  hourly_rate?: number
+  specialty?: string
+  tags?: string[]
+  languages?: string[]
+  experience_years?: number
+  education?: string
+  teaching_style?: string
+  what_to_expect?: string[]
+  location?: string
+  timezone?: string
+  phone?: string
+  is_profile_completed?: boolean
+  completed_sessions?: number
+  rating?: number
 }
 
 type AuthContextType = {
@@ -115,6 +131,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else if (user?.role === "expert") {
           if (!user.is_verified) {
             router.push("/auth/verification-pending")
+          } else if (!user.is_profile_completed) {
+            router.push("/dashboard/expert/complete-profile")
           } else {
             router.push("/dashboard/expert")
           }

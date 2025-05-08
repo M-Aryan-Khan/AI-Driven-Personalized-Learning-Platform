@@ -6,9 +6,10 @@ import axios from "@/lib/axios"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { motion } from "framer-motion"
 import { Skeleton } from "@/components/ui/skeleton"
+import { format, addDays, startOfWeek, endOfWeek, isSameDay, parseISO } from "date-fns"
 
 type Session = {
   id: string
@@ -33,26 +34,38 @@ export default function CalendarTab() {
       try {
         setLoading(true)
         const response = await axios.get("/api/students/sessions")
-        setSessions(response.data)
+        
+        if (response.data && Array.isArray(response.data)) {
+          // Filter only scheduled sessions
+          const scheduledSessions = response.data.filter((session: Session) => 
+            session.status === "scheduled"
+          )
+          setSessions(scheduledSessions)
+        } else {
+          setSessions([])
+        }
       } catch (error) {
         console.error("Error fetching sessions:", error)
+        toast({
+          title: "Error",
+          description: "Failed to load your sessions. Please try again.",
+          variant: "destructive",
+        })
+        setSessions([])
       } finally {
         setLoading(false)
       }
     }
 
     fetchSessions()
-  }, [])
+  }, [toast])
 
   const getWeekDates = () => {
     const dates = []
-    const startOfWeek = new Date(currentDate)
-    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay())
-
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 }) // 0 = Sunday
+    
     for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek)
-      date.setDate(startOfWeek.getDate() + i)
-      dates.push(date)
+      dates.push(addDays(weekStart, i))
     }
 
     return dates
@@ -62,7 +75,7 @@ export default function CalendarTab() {
 
   const getTimeSlots = () => {
     const slots = []
-    for (let hour = 8; hour < 20; hour++) {
+    for (let hour = 0; hour < 25; hour++) {
       slots.push(`${hour}:00`)
     }
     return slots
@@ -89,39 +102,21 @@ export default function CalendarTab() {
   const formatWeekRange = () => {
     const startDate = weekDates[0]
     const endDate = weekDates[6]
-
-    const startMonth = startDate.toLocaleString("default", { month: "short" })
-    const endMonth = endDate.toLocaleString("default", { month: "short" })
-
-    const startDay = startDate.getDate()
-    const endDay = endDate.getDate()
-    const year = endDate.getFullYear()
-
-    if (startMonth === endMonth) {
-      return `${startMonth} ${startDay} – ${endDay}, ${year}`
-    } else {
-      return `${startMonth} ${startDay} – ${endMonth} ${endDay}, ${year}`
-    }
+    return `${format(startDate, "MMM d")} – ${format(endDate, "MMM d, yyyy")}`
   }
 
   const isToday = (date: Date) => {
     const today = new Date()
-    return (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
-    )
+    return isSameDay(date, today)
   }
 
   const getSessionsForDateAndTime = (date: Date, timeSlot: string) => {
-    const hour = Number.parseInt(timeSlot.split(":")[0])
-
+    const hour = parseInt(timeSlot.split(":")[0])
+    
     return sessions.filter((session) => {
       const sessionDate = new Date(session.date)
       return (
-        sessionDate.getDate() === date.getDate() &&
-        sessionDate.getMonth() === date.getMonth() &&
-        sessionDate.getFullYear() === date.getFullYear() &&
+        isSameDay(sessionDate, date) &&
         sessionDate.getHours() === hour
       )
     })
@@ -179,14 +174,14 @@ export default function CalendarTab() {
       <Card className="overflow-hidden">
         <CardContent className="p-0">
           <div className="grid grid-cols-8 border-b">
-            <div className="border-r p-2 text-center text-xs font-medium text-gray-500">GMT+0</div>
+            <div className="border-r p-2 text-center text-xs font-medium text-gray-500">Time</div>
             {weekDates.map((date, index) => (
               <div key={index} className={`p-2 text-center ${isToday(date) ? "bg-[#fff2e7]" : ""}`}>
                 <div className="text-xs font-medium text-gray-500">
-                  {date.toLocaleDateString(undefined, { weekday: "short" })}
+                  {format(date, "EEE")}
                 </div>
                 <div className={`text-sm font-semibold ${isToday(date) ? "text-deep-cocoa" : ""}`}>
-                  {date.getDate()}
+                  {format(date, "d")}
                 </div>
               </div>
             ))}
@@ -214,6 +209,9 @@ export default function CalendarTab() {
                         >
                           <div className="font-medium">{session.expert_name}</div>
                           <div className="truncate">{session.topic}</div>
+                          <div className="text-xs opacity-75">
+                            {format(parseISO(session.date), "h:mm a")}
+                          </div>
                         </motion.div>
                       ))}
                     </div>

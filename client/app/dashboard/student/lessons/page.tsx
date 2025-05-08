@@ -1,43 +1,24 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Calendar, Clock, GraduationCap } from "lucide-react"
+import { Calendar, Clock, GraduationCap } from 'lucide-react'
 import LessonsTab from "@/components/dashboard/student/lessons-tab"
 import CalendarTab from "@/components/dashboard/student/calendar-tab"
-import TutorsTab from "@/components/dashboard/student/tutors-tab"
+import ExpertsTab from "@/components/dashboard/student/tutors-tab"
 import { motion } from "framer-motion"
 
 export default function MyLessons() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const tabParam = searchParams.get("tab")
   const [activeTab, setActiveTab] = useState(tabParam || "lessons")
-  const [sessions, setSessions] = useState([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchSessions = async () => {
-      try {
-        setLoading(true)
-        // In a real app, this would be an API call
-        // const response = await axios.get("/api/students/sessions")
-        // setSessions(response.data)
-
-        // For development, use empty array or mock data
-        setSessions([])
-      } catch (error) {
-        // Silently handle error - don't show error messages
-        console.error("Error fetching sessions:", error)
-        setSessions([]) // Set empty array instead of showing error
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchSessions()
-  }, [])
+  const handleScheduleLesson = () => {
+    router.push("/dashboard/student/find-tutors")
+  }
 
   return (
     <div className="container mx-auto max-w-6xl">
@@ -50,7 +31,12 @@ export default function MyLessons() {
           </Button>
 
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button className="bg-[#ff9b7b] text-white hover:bg-[#ff8a63] hover:cursor-pointer">Schedule lesson</Button>
+            <Button 
+              className="bg-[#ff9b7b] text-white hover:bg-[#ff8a63] hover:cursor-pointer"
+              onClick={handleScheduleLesson}
+            >
+              Schedule lesson
+            </Button>
           </motion.div>
         </div>
       </div>
@@ -65,9 +51,9 @@ export default function MyLessons() {
             <Calendar className="h-4 w-4" />
             Calendar
           </TabsTrigger>
-          <TabsTrigger value="tutors" className="flex items-center gap-2">
+          <TabsTrigger value="experts" className="flex items-center gap-2">
             <GraduationCap className="h-4 w-4" />
-            Tutors
+            Experts
           </TabsTrigger>
         </TabsList>
 
@@ -79,8 +65,8 @@ export default function MyLessons() {
           <CalendarTab />
         </TabsContent>
 
-        <TabsContent value="tutors">
-          <TutorsTab />
+        <TabsContent value="experts">
+          <ExpertsTab />
         </TabsContent>
       </Tabs>
     </div>

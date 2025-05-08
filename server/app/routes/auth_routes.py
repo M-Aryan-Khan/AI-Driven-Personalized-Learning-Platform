@@ -45,7 +45,7 @@ router = APIRouter(
 config = Config('.env')
 # Environment variables
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60*24))
 
 
 # Setup logging
