@@ -10,11 +10,25 @@ from ..models.message import MessageCreate, MessageResponse, ConversationRespons
 from ..utils.auth import get_current_active_user, require_role
 from ..utils.email import send_session_confirmation_email
 from ..db.mongo import db
+from pydantic import BaseModel
+
+from ..utils.hash import (
+    hash_password, 
+    verify_password
+    
+)
 
 router = APIRouter(
     prefix="/api/students",
     tags=["Students"],
 )
+
+class DeleteAccountRequest(BaseModel):
+    password: str
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
 
 @router.get("/profile", response_model=StudentProfile)
 async def get_student_profile(current_user: dict = Depends(require_role("student"))):
@@ -41,37 +55,37 @@ async def update_student_profile(
     """
     Update student profile
     """
-    # Filter out None values
     update_data = {k: v for k, v in profile_update.dict().items() if v is not None}
-    
+
     if not update_data:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No data to update"
         )
     
-    # Add updated_at timestamp
+    # Convert comma-separated strings to list (if mistakenly sent that way)
+    for key in ["learning_goals", "preferred_languages"]:
+        if key in update_data and isinstance(update_data[key], str):
+            update_data[key] = [item.strip() for item in update_data[key].split(",") if item.strip()]
+
     update_data["updated_at"] = datetime.now(timezone.utc)
-    
-    # Update student
+
     result = db.students.update_one(
         {"_id": ObjectId(current_user["id"])},
         {"$set": update_data}
     )
-    
+
     if result.modified_count == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Student not found"
         )
-    
-    # Get updated student
+
     updated_student = db.students.find_one({"_id": ObjectId(current_user["id"])})
-    
-    # Convert ObjectId to string
     updated_student["id"] = str(updated_student["_id"])
-    
+
     return updated_student
+
 
 @router.post("/profile/image", response_model=dict)
 async def upload_profile_image(
@@ -629,16 +643,14 @@ async def send_message(
     
     return created_message
 
-@router.post("/change-password", response_model=dict)
+@router.put("/change-password", response_model=dict)
 async def change_password(
-    current_password: str,
-    new_password: str,
+    payload: ChangePasswordRequest,
     current_user: dict = Depends(require_role("student"))
 ):
     """
     Change student password
     """
-    from ..utils.hash import verify_password, get_password_hash
     
     # Get student
     student = db.students.find_one({"_id": ObjectId(current_user["id"])})
@@ -649,17 +661,49 @@ async def change_password(
         )
     
     # Verify current password
-    if not verify_password(current_password, student["hashed_password"]):
+    if not verify_password(payload.current_password, student["password"]):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect password"
         )
     
     # Update password
-    hashed_password = get_password_hash(new_password)
+    print(payload.new_password)
+    hashed_password = hash_password(payload.new_password)
+    print(hashed_password)
     db.students.update_one(
         {"_id": ObjectId(current_user["id"])},
-        {"$set": {"hashed_password": hashed_password}}
+        {"$set": {"password": hashed_password}}
     )
     
     return {"message": "Password updated successfully"}
+
+
+@router.delete("/delete-account", response_model=dict)
+async def delete_account(
+    payload: DeleteAccountRequest,
+    current_user: dict = Depends(require_role("student"))
+):
+    """
+    Delete student account after verifying password
+    """
+
+    # Get student
+    student = db.students.find_one({"_id": ObjectId(current_user["id"])})
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found"
+        )
+
+    # Verify password
+    if not verify_password(payload.password, student["password"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect password"
+        )
+
+    # Delete account
+    db.students.delete_one({"_id": ObjectId(current_user["id"])})
+
+    return {"message": "Account deleted successfully"}

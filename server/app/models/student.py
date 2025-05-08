@@ -9,6 +9,7 @@ class StudentCreate(UserCreate):
 class StudentUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    phone_number: Optional[str] = None
     bio: Optional[str] = None
     profile_image: Optional[str] = None
     learning_goals: Optional[List[str]] = None
