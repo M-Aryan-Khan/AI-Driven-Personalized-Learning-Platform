@@ -196,7 +196,7 @@ export default function ExpertProfile() {
           <h3 className="mb-2 text-xl font-semibold text-deep-cocoa">Tutor not found</h3>
           <p className="text-gray-500">The tutor you're looking for doesn't exist or has been removed.</p>
           <Button
-            className="mt-4 bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289]"
+            className="mt-4 bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289] hover:cursor-pointer"
             onClick={() => router.push("/dashboard/student/find-tutors")}
           >
             Back to Tutors
@@ -236,7 +236,7 @@ export default function ExpertProfile() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute right-2 top-2 rounded-full bg-white/80 p-1 hover:bg-white"
+                    className="absolute right-2 top-2 rounded-full bg-white/80 p-1 hover:bg-white hover:cursor-pointer"
                     onClick={handleBookmark}
                   >
                     <Heart className={`h-5 w-5 ${bookmarked ? "fill-red-500 text-red-500" : "text-gray-500"}`} />
@@ -299,7 +299,7 @@ export default function ExpertProfile() {
 
                   <div className="flex flex-col gap-2">
                     <Button
-                      className="w-full bg-[#ff9b7b] text-white hover:bg-[#ff8a63]"
+                      className="w-full bg-[#ff9b7b] text-white hover:bg-[#ff8a63] hover:cursor-pointer"
                       onClick={handleScheduleLesson}
                     >
                       <Calendar className="mr-2 h-4 w-4" />
@@ -307,7 +307,7 @@ export default function ExpertProfile() {
                     </Button>
                     <Button
                       variant="outline"
-                      className="w-full border-[#ffc6a8] text-deep-cocoa hover:bg-[#fff2e7]"
+                      className="w-full border-[#ffc6a8] text-deep-cocoa hover:bg-[#fff2e7] hover:cursor-pointer"
                       onClick={handleSendMessage}
                     >
                       <MessageCircle className="mr-2 h-4 w-4" />
@@ -410,7 +410,7 @@ export default function ExpertProfile() {
                         <p className="mb-1 text-xl font-bold text-deep-cocoa">${expert.hourly_rate.toFixed(2)}</p>
                         <p className="mb-4 text-xs text-gray-500">per hour</p>
                         <Button
-                          className="w-full mt-auto bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289]"
+                          className="w-full mt-auto bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289] hover:cursor-pointer"
                           onClick={handleScheduleLesson}
                         >
                           Book Now
@@ -432,7 +432,7 @@ export default function ExpertProfile() {
                         </p>
                         <p className="mb-4 text-xs text-gray-500">per hour (5% off)</p>
                         <Button
-                          className="w-full mt-auto bg-[#ff9b7b] text-white hover:bg-[#ff8a63]"
+                          className="w-full mt-auto bg-[#ff9b7b] text-white hover:bg-[#ff8a63] hover:cursor-pointer"
                           onClick={handleScheduleLesson}
                         >
                           Book Package
@@ -452,7 +452,7 @@ export default function ExpertProfile() {
                         <p className="mb-4 text-xs text-gray-500">per hour (10% off)</p>
                         <Button
                           variant="outline"
-                          className="w-full mt-auto border-[#ffc6a8] text-deep-cocoa hover:bg-[#fff2e7]"
+                          className="w-full mt-auto border-[#ffc6a8] text-deep-cocoa hover:bg-[#fff2e7] hover:cursor-pointer"
                           onClick={handleScheduleLesson}
                         >
                           Book Package
@@ -589,7 +589,7 @@ export default function ExpertProfile() {
             className="flex justify-center"
           >
             <Button
-              className="bg-[#ff9b7b] text-white hover:bg-[#ff8a63] px-8"
+              className="bg-[#ff9b7b] text-white hover:bg-[#ff8a63] px-8 hover:cursor-pointer"
               onClick={handleScheduleLesson}
               size="lg"
             >

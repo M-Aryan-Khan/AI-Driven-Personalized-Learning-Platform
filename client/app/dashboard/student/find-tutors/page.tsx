@@ -183,7 +183,7 @@ export default function FindTutors() {
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              className="flex items-center gap-2 border-[#ffc6a8] text-deep-cocoa hover:bg-[#fff2e7]"
+              className="flex items-center gap-2 border-[#ffc6a8] text-deep-cocoa hover:bg-[#fff2e7] hover:cursor-pointer"
               onClick={() => setShowFilters(!showFilters)}
             >
               <Filter className="h-4 w-4" />
@@ -192,7 +192,7 @@ export default function FindTutors() {
             </Button>
 
             {(priceRange[0] > 0 || priceRange[1] < 100 || minRating > 0 || selectedLanguage || selectedSpecialty) && (
-              <Button variant="ghost" size="sm" className="text-gray-500 hover:text-deep-cocoa" onClick={resetFilters}>
+              <Button variant="ghost" size="sm" className="text-gray-500 hover:text-deep-cocoa hover:cursor-pointer" onClick={resetFilters}>
                 <X className="mr-1 h-4 w-4" />
                 Reset
               </Button>
@@ -349,7 +349,7 @@ export default function FindTutors() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute right-2 top-2 rounded-full bg-white/80 p-1 hover:bg-white"
+                        className="absolute right-2 top-2 rounded-full bg-white/80 p-1 hover:bg-white hover:cursor-pointer"
                         onClick={(e) => handleBookmark(expert.id, e)}
                       >
                         <Heart
@@ -407,7 +407,7 @@ export default function FindTutors() {
                       <p className="text-xs text-gray-500">per hour</p>
                     </div>
                     <Button
-                      className="bg-[#ff9b7b] text-white hover:bg-[#ff8a63]"
+                      className="bg-[#ff9b7b] text-white hover:bg-[#ff8a63] hover:cursor-pointer"
                       onClick={() => handleExpertClick(expert.id)}
                     >
                       View Profile

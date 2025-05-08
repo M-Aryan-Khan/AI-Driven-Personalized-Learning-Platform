@@ -163,7 +163,7 @@ export default function LessonDetailsPage() {
         <p className="mb-6 text-gray-500">The lesson you're looking for doesn't exist or has been removed.</p>
         <Button
           onClick={() => router.push("/dashboard/student/lessons")}
-          className="bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289]"
+          className="bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289] hover:cursor-pointer"
         >
           Back to lessons
         </Button>
@@ -201,7 +201,7 @@ export default function LessonDetailsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-4 border-[#ffc6a8] text-deep-cocoa hover:bg-[#fff2e7]"
+                className="mt-4 border-[#ffc6a8] text-deep-cocoa hover:bg-[#fff2e7] hover:cursor-pointer"
                 onClick={handleMessageTutor}
               >
                 <MessageSquare className="mr-2 h-4 w-4" />
@@ -252,7 +252,7 @@ export default function LessonDetailsPage() {
               {session.status === "scheduled" && isUpcoming(session.date) && (
                 <>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button className="w-full bg-[#ff9b7b] text-white hover:bg-[#ff8a63]" onClick={handleJoinLesson}>
+                    <Button className="w-full bg-[#ff9b7b] text-white hover:bg-[#ff8a63] hover:cursor-pointer" onClick={handleJoinLesson}>
                       <Video className="mr-2 h-4 w-4" />
                       Join lesson
                     </Button>
@@ -261,7 +261,7 @@ export default function LessonDetailsPage() {
                   <div className="flex gap-3">
                     <Button
                       variant="outline"
-                      className="flex-1 border-[#ffc6a8] text-deep-cocoa hover:bg-[#fff2e7]"
+                      className="flex-1 border-[#ffc6a8] text-deep-cocoa hover:bg-[#fff2e7] hover:cursor-pointer"
                       onClick={handleRescheduleLesson}
                     >
                       Reschedule
@@ -269,7 +269,7 @@ export default function LessonDetailsPage() {
 
                     <Button
                       variant="outline"
-                      className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+                      className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:cursor-pointer"
                       onClick={handleCancelLesson}
                     >
                       Cancel
@@ -280,7 +280,7 @@ export default function LessonDetailsPage() {
 
               {session.status === "cancelled" && (
                 <Button
-                  className="w-full bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289]"
+                  className="w-full bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289] hover:cursor-pointer"
                   onClick={handleRescheduleLesson}
                 >
                   Schedule new lesson
@@ -289,7 +289,7 @@ export default function LessonDetailsPage() {
 
               {session.status === "completed" && (
                 <Button
-                  className="w-full bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289]"
+                  className="w-full bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289] hover:cursor-pointer"
                   onClick={handleRescheduleLesson}
                 >
                   Book another lesson

@@ -1,13 +1,13 @@
-from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Body
 from typing import List, Optional, Dict
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from bson import ObjectId
 
 from ..models.expert import ExpertUpdate, ExpertProfile
 from ..models.session import SessionResponse, SessionUpdate
-from ..models.review import ReviewCreate, ReviewResponse
-from ..models.message import MessageCreate, MessageResponse, ConversationResponse
+from ..models.review import ReviewResponse
 from ..utils.auth import get_current_active_user, require_role
+from ..models.message import MessageCreate, MessageResponse, ConversationResponse
 from ..db.mongo import db
 
 router = APIRouter(
@@ -17,7 +17,7 @@ router = APIRouter(
 
 @router.get("/profile", response_model=ExpertProfile)
 async def get_expert_profile(current_user: dict = Depends(require_role("expert"))):
-    """
+    """ 
     Get current expert profile
     """
     expert = db.experts.find_one({"_id": ObjectId(current_user["id"])})
@@ -458,24 +458,18 @@ async def change_password(
     return {"message": "Password updated successfully"}
 
 @router.get("/reviews", response_model=List[ReviewResponse])
-async def get_expert_reviews(
-    current_user: dict = Depends(require_role("expert"))
-):
+async def get_expert_reviews(current_user: dict = Depends(require_role("expert"))):
     """
-    Get reviews for the expert
+    Get all reviews for the current expert
     """
-    # Find reviews
+    # Get reviews for this expert
     reviews = list(db.reviews.find({"expert_id": current_user["id"]}).sort("created_at", -1))
     
-    # Enrich reviews with student info
+    # Convert ObjectId to string
     for review in reviews:
         review["id"] = str(review["_id"])
-        
-        # Get student info
-        student = db.students.find_one({"_id": ObjectId(review["student_id"])})
-        if student:
-            review["student_name"] = f"{student['first_name']} {student['last_name']}"
-            review["student_profile_image"] = student.get("profile_image")
+        if "_id" in review:
+            del review["_id"]
     
     return reviews
 

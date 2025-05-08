@@ -24,6 +24,7 @@ import {
 } from "date-fns"
 import { CalendarIcon, Clock, CreditCard, CheckCircle, AlertCircle } from 'lucide-react'
 import { motion, AnimatePresence } from "framer-motion"
+import { useAuth } from "@/contexts/auth-context"
 
 type Expert = {
   id: string
@@ -52,6 +53,7 @@ export default function ScheduleLesson() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
+  const { user } = useAuth()
 
   const [expert, setExpert] = useState<Expert | null>(null)
   const [loading, setLoading] = useState(true)
@@ -163,20 +165,20 @@ export default function ScheduleLesson() {
             },
             timeout: 60000, // 60 seconds timeout
           })
-          
+
           // If successful, break out of the retry loop
           break
         } catch (error: any) {
           attempt++
           console.error(`Attempt ${attempt} failed:`, error.message)
-          
+
           // If it's an auth error, no need to retry
           if (error.response && error.response.status === 401) {
             console.error("Authentication error. Please log in again.")
             // Could redirect to login here if needed
             throw error
           }
-          
+
           if (attempt >= maxAttempts) {
             // If all attempts failed, throw the error to be caught by the outer try/catch
             throw error
@@ -205,7 +207,7 @@ export default function ScheduleLesson() {
       } else {
         // Generate demo availability data if no real data is available
         generateDemoAvailability()
-        
+
         toast({
           title: "No availability data",
           description: "Using demo availability data instead.",
@@ -214,7 +216,7 @@ export default function ScheduleLesson() {
       }
     } catch (error: any) {
       console.error("Error fetching expert availability:", error)
-      
+
       // Check if it's an authentication error
       if (error.response && error.response.status === 401) {
         toast({
@@ -222,7 +224,7 @@ export default function ScheduleLesson() {
           description: "Your session may have expired. Please log in again.",
           variant: "destructive",
         })
-        
+
         // Optionally redirect to login
         // router.push("/auth/login")
       } else {
@@ -301,6 +303,7 @@ export default function ScheduleLesson() {
 
     try {
       setIsSubmitting(true)
+      const token = localStorage.getItem("token")
 
       // Parse the time string to create a full date object
       const timeComponents = selectedTime.split(":")
@@ -311,16 +314,36 @@ export default function ScheduleLesson() {
       sessionDate.setHours(hours)
       sessionDate.setMinutes(minutes)
 
-      // Create session
-      const response = await axios.post("/api/students/sessions", {
-        student_id: "current", // The backend will use the current user's ID
-        expert_id: expert.id,
-        date: sessionDate.toISOString(),
-        duration: Number.parseInt(duration),
-        topic,
-        description,
-        payment_method_id: selectedPaymentMethod,
-      })
+      // Ensure we have a valid token
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "You need to be logged in to schedule a lesson",
+          variant: "destructive",
+        })
+        router.push("/auth/login")
+        return
+      }
+
+      // Create session with explicit headers
+      const response = await axios.post(
+        "/api/students/sessions",
+        {
+          student_id: user?.id || "current", // Use actual ID if available
+          expert_id: expert.id,
+          date: sessionDate.toISOString(),
+          duration: Number.parseInt(duration),
+          topic,
+          description,
+          payment_method_id: selectedPaymentMethod,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      )
 
       toast({
         title: "Success",
@@ -329,13 +352,48 @@ export default function ScheduleLesson() {
 
       // Redirect to the session details page
       router.push(`/dashboard/student/lessons/${response.data.session_id}`)
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error scheduling lesson:", error)
-      toast({
-        title: "Error",
-        description: "Failed to schedule lesson",
-        variant: "destructive",
-      })
+      
+      // More detailed error handling
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        if (error.response.status === 403) {
+          toast({
+            title: "Permission Error",
+            description: "You don't have permission to schedule this lesson. Please check your account status.",
+            variant: "destructive",
+          })
+        } else if (error.response.status === 401) {
+          toast({
+            title: "Authentication Error",
+            description: "Your session has expired. Please log in again.",
+            variant: "destructive",
+          })
+          router.push("/auth/login")
+        } else {
+          toast({
+            title: "Error",
+            description: error.response.data?.detail || "Failed to schedule lesson",
+            variant: "destructive",
+          })
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        toast({
+          title: "Network Error",
+          description: "No response from server. Please check your internet connection.",
+          variant: "destructive",
+        })
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        toast({
+          title: "Error",
+          description: "Failed to schedule lesson: " + error.message,
+          variant: "destructive",
+        })
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -422,7 +480,7 @@ export default function ScheduleLesson() {
             className="mt-4 bg-[#ffc6a8] text-deep-cocoa hover:bg-[#ffb289]"
             onClick={() => router.push("/dashboard/student/find-tutors")}
           >
-            Back to Tutors
+            Back to Experts
           </Button>
         </div>
       </div>
@@ -658,7 +716,7 @@ export default function ScheduleLesson() {
                           <p className="font-medium text-deep-cocoa">{method.card_type || "Credit Card"}</p>
                           <p className="text-sm text-gray-500">
                             {formatCardNumber(method.card_number)}
-                            {method.expiry_date}
+                            {method.expiry_date && <span> • Expires {method.expiry_date}</span>}
                           </p>
                         </div>
                         {selectedPaymentMethod === method.id && <CheckCircle className="h-5 w-5 text-[#ff9b7b]" />}
@@ -728,7 +786,7 @@ export default function ScheduleLesson() {
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="mr-2 mt-0.5 h-4 w-4 text-[#ff9b7b]" />
-                    <span>Your tutor will be notified and can prepare for the lesson</span>
+                    <span>Your expert will be notified and can prepare for the lesson</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="mr-2 mt-0.5 h-4 w-4 text-[#ff9b7b]" />
@@ -736,7 +794,7 @@ export default function ScheduleLesson() {
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="mr-2 mt-0.5 h-4 w-4 text-[#ff9b7b]" />
-                    <span>After the lesson, you can leave a review for your tutor</span>
+                    <span>After the lesson, you can leave a review for your expert</span>
                   </li>
                 </ul>
               </CardContent>

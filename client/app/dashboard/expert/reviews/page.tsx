@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
@@ -10,10 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Star, Search, Filter, ChevronDown, X } from "lucide-react"
+import { Star, Search, Filter, ChevronDown, X } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
 import { useToast } from "@/hooks/use-toast"
+import axios from "@/lib/axios"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type Review = {
   id: string
@@ -26,6 +26,18 @@ type Review = {
   session_topic?: string
 }
 
+type Stats = {
+  average_rating: number
+  total_reviews: number
+  rating_breakdown: {
+    5: number
+    4: number
+    3: number
+    2: number
+    1: number
+  }
+}
+
 export default function ExpertReviews() {
   const { user } = useAuth()
   const router = useRouter()
@@ -36,7 +48,7 @@ export default function ExpertReviews() {
   const [ratingFilter, setRatingFilter] = useState("all")
   const [sortBy, setSortBy] = useState("newest")
   const [showFilters, setShowFilters] = useState(false)
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<Stats>({
     average_rating: 0,
     total_reviews: 0,
     rating_breakdown: {
@@ -49,96 +61,67 @@ export default function ExpertReviews() {
   })
 
   useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        setLoading(true)
+    fetchReviews()
+  }, [])
 
-        // In a real app, you would fetch from your API
-        // For now, we'll simulate with mock data
+  const fetchReviews = async () => {
+    try {
+      setLoading(true)
 
-        // Mock reviews data
-        const mockReviews: Review[] = [
-          {
-            id: "r1",
-            student_id: "s1",
-            student_name: "John Doe",
-            student_profile_image: "",
-            rating: 5,
-            comment: "Excellent teacher! Very patient and explains concepts clearly. I learned a lot in our session.",
-            created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            session_topic: "React Fundamentals",
-          },
-          {
-            id: "r2",
-            student_id: "s2",
-            student_name: "Jane Smith",
-            student_profile_image: "",
-            rating: 4,
-            comment: "Great session, very helpful with my project. Would book again.",
-            created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-            session_topic: "Node.js API Development",
-          },
-          {
-            id: "r3",
-            student_id: "s3",
-            student_name: "Alice Johnson",
-            student_profile_image: "",
-            rating: 5,
-            comment: "Amazing teacher! Helped me understand complex concepts in a simple way.",
-            created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-            session_topic: "Data Structures",
-          },
-          {
-            id: "r4",
-            student_id: "s4",
-            student_name: "Bob Brown",
-            student_profile_image: "",
-            rating: 3,
-            comment: "Good session, but we ran out of time before covering everything I wanted to learn.",
-            created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-            session_topic: "Python Basics",
-          },
-        ]
+      // Fetch reviews from the API
+      const response = await axios.get(`/api/experts/reviews`)
+      const reviewsData = response.data || []
+      
+      setReviews(reviewsData)
 
-        setReviews(mockReviews)
+      // Calculate stats
+      const totalReviews = reviewsData.length
+      const totalRating = reviewsData.reduce((sum: number, review: Review) => sum + review.rating, 0)
+      const averageRating = totalReviews > 0 ? totalRating / totalReviews : 0
 
-        // Calculate stats
-        const totalReviews = mockReviews.length
-        const totalRating = mockReviews.reduce((sum, review) => sum + review.rating, 0)
-        const averageRating = totalReviews > 0 ? totalRating / totalReviews : 0
+      // Calculate rating breakdown
+      const ratingBreakdown = {
+        5: 0,
+        4: 0,
+        3: 0,
+        2: 0,
+        1: 0,
+      }
 
-        // Calculate rating breakdown
-        const ratingBreakdown = {
+      reviewsData.forEach((review: Review) => {
+        ratingBreakdown[review.rating as keyof typeof ratingBreakdown]++
+      })
+
+      setStats({
+        average_rating: averageRating,
+        total_reviews: totalReviews,
+        rating_breakdown: ratingBreakdown,
+      })
+    } catch (error) {
+      console.error("Error fetching reviews:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load reviews",
+        variant: "destructive",
+      })
+      
+      // Set empty reviews if there's an error
+      setReviews([])
+      setStats({
+        average_rating: 0,
+        total_reviews: 0,
+        rating_breakdown: {
           5: 0,
           4: 0,
           3: 0,
           2: 0,
           1: 0,
-        }
-
-        mockReviews.forEach((review) => {
-          ratingBreakdown[review.rating as keyof typeof ratingBreakdown]++
-        })
-
-        setStats({
-          average_rating: averageRating,
-          total_reviews: totalReviews,
-          rating_breakdown: ratingBreakdown,
-        })
-      } catch (error) {
-        console.error("Error fetching reviews:", error)
-        toast({
-          title: "Error",
-          description: "Failed to load reviews",
-          variant: "destructive",
-        })
-      } finally {
-        setLoading(false)
-      }
+        },
+      })
+    } finally {
+      setLoading(false)
     }
-
-    fetchReviews()
-  }, [toast])
+  }
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)

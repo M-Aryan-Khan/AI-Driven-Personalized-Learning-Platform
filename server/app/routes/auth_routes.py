@@ -45,7 +45,7 @@ router = APIRouter(
 config = Config('.env')
 # Environment variables
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60*24))
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 1440))
 
 
 # Setup logging
@@ -676,7 +676,7 @@ async def auth(request: Request):
         raise HTTPException(status_code=401, detail="Invalid user information from Google.")
 
     # Create JWT token
-    expires_in = token.get("expires_in", ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+    expires_in = token.get("expires_in", 1440)
     access_token_expires = timedelta(seconds=expires_in)
     access_token = create_access_token(data={"sub": user_id, "email": user_email}, expires_delta=access_token_expires)
 
