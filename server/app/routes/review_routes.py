@@ -65,7 +65,8 @@ async def create_review(
         "expert_id": expert_id,
         "rating": review.rating,
         "comment": review.comment,
-        "created_at": datetime.now(timezone.utc)
+        "created_at": datetime.now(timezone.utc),
+        "session_id": str(session["_id"]) if session else None
     }
     
     # Insert review

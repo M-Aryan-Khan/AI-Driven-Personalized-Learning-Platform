@@ -45,7 +45,7 @@ try:
     
     # Review indexes
     db.reviews.create_index("expert_id")
-    db.reviews.create_index("session_id", unique=True)
+    db.reviews.create_index("session_id", unique=True, sparse=True)
     
 except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {str(e)}")

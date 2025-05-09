@@ -16,3 +16,4 @@ class ReviewResponse(ReviewBase):
     student_profile_image: Optional[str] = None
     expert_id: str
     created_at: datetime
+    session_id: Optional[str] = None
