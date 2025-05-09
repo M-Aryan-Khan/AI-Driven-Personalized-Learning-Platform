@@ -43,3 +43,15 @@ class StudentProfile(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+class RecommendationResponse(BaseModel):
+    tutor_id: str
+    tutor_name: str
+    similarity_score: float
+    rating: float
+    hourly_rate: float
+    skills: List[str]
+
+    # class Config:
+    #     from_attributes = True

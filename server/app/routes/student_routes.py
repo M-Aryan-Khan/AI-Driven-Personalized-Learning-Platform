@@ -3,11 +3,12 @@ from typing import List, Optional, Dict
 from datetime import datetime, timezone, timedelta
 from bson import ObjectId
 
-from ..models.student import StudentUpdate, StudentProfile
+from ..models.student import StudentUpdate, StudentProfile, RecommendationResponse
 from ..models.expert import ExpertSearchResult, ExpertProfile
 from ..models.session import SessionCreate, SessionResponse, SessionUpdate
 from ..models.message import MessageCreate, MessageResponse, ConversationResponse
 from ..models.payment import PaymentMethod, PaymentHistory
+from ..recommender.hybrid import HybridRecommender, Student, Tutor
 from ..utils.auth import get_current_active_user, require_role
 from ..utils.email import send_session_confirmation_email
 from ..utils.hash import verify_password, hash_password
@@ -17,6 +18,53 @@ router = APIRouter(
     prefix="/api/students",
     tags=["Students"],
 )
+
+@router.post("/experts/ids", response_model=List[ExpertSearchResult])
+def get_experts_by_ids(payload: Dict[str, List[str]]):
+    expert_ids = payload.get("expert_ids", [])
+    object_ids = [ObjectId(eid) for eid in expert_ids]
+    experts = list(db.experts.find({"_id": {"$in": object_ids}}))
+
+    for expert in experts:
+        expert["id"] = str(expert["_id"])
+
+    return experts
+
+
+@router.get("/recommendations", response_model=List[RecommendationResponse])
+def get_recommendations(top_n: int = 3,current_user: dict = Depends(require_role("student"))):
+    student_id = str(current_user["id"])  # Convert to string early
+    student_doc = db.students.find_one({"_id": ObjectId(student_id)})
+    if not student_doc:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    # Fetch all tutors
+    tutor_docs = list(db.experts.find({}))
+    if not tutor_docs:
+        raise HTTPException(status_code=404, detail="No tutors found")
+
+    # Instantiate recommender
+    students = [Student(student_doc)]
+    tutors = [Tutor(doc) for doc in tutor_docs]
+    
+
+    recommender = HybridRecommender(students, tutors)
+    recommended = recommender.recommend(str(current_user["id"]), top_n)
+
+
+    # Prepare response
+    response = [
+        RecommendationResponse(
+            tutor_id=tutor.id,
+            tutor_name=tutor.name,
+            similarity_score=round(score, 3),
+            rating=tutor.avg_rating,
+            hourly_rate=tutor.hourly_rate,
+            skills=tutor.skills,
+        )
+        for tutor, score in recommended
+    ]
+    return response
 
 @router.get("/profile", response_model=StudentProfile)
 async def get_student_profile(current_user: dict = Depends(require_role("student"))):
